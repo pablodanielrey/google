@@ -35,9 +35,9 @@ setup(name='google',
                             'SQLAlchemy'],
           entry_points={
             'console_scripts': [
-                'wamp=users.api.wamp.main:main',
-                'rest=users.api.rest.main:main',
-                'flask=users.web.main:main'
+                'wamp=google.api.wamp.main:main',
+                'rest=google.api.rest.main:main',
+                'flask=google.web.main:main'
             ]
           }
 

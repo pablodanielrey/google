@@ -2,7 +2,7 @@ import logging
 logging.getLogger().setLevel(logging.INFO)
 import sys
 from flask import Flask, abort, make_response, jsonify, url_for, request, json
-from users.model import UsersModel
+from google.model import GoogleModel
 from flask_jsontools import jsonapi
 
 from rest_utils import register_encoder
@@ -10,16 +10,16 @@ from rest_utils import register_encoder
 app = Flask(__name__)
 register_encoder(app)
 
-@app.route('/users/api/v1.0/usuarios/', methods=['GET', 'POST'], defaults={'usuario':None})
-@app.route('/users/api/v1.0/usuarios/<usuario>', methods=['GET', 'POST'])
+@app.route('/google/api/v1.0/sincronizar', methods=['GET'])
 @jsonapi
-def usuarios(usuario):
-    dni = request.args.get('d',None)
-    mostrarClave = request.args.get('c',False,bool)
+def sincronizar():
+    return GoogleModel.sincronizar()
 
-    offset = request.args.get('offset',None,int)
-    limit = request.args.get('limit',None,int)
-    return UsersModel.usuarios(usuario=usuario, dni=dni, c=mostrarClave, offset=offset, limit=limit)
+@app.route('/google/api/v1.0/sincronizar_usuarios', methods=['GET'])
+@jsonapi
+def sincronizarUsuarios():
+    return GoogleModel.sincronizarUsuarios()
+
 
 @app.after_request
 def add_header(r):
