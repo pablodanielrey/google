@@ -11,10 +11,10 @@
 
 from setuptools import setup, find_packages
 
-setup(name='users',
+setup(name='google',
           version='0.1.0.dev0',
-          description='Proyecto que maneja el equema de usuarios de los sistemas',
-          url='https://github.com/pablodanielrey/users',
+          description='Proyecto que maneja sincronización de google desde nuestras bases',
+          url='https://github.com/pablodanielrey/google',
           author='Desarrollo DiTeSi, FCE',
           author_email='ditesi@econo.unlp.edu.ar',
           classifiers=[
