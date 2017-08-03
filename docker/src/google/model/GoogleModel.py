@@ -29,7 +29,7 @@ class GoogleModel:
         session = Session()
         for u in usuarios:
             s = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
-            clave = u['claves'][0]
+            clave = u['claves'][0] if len(u['claves']) > 0 else None
             if clave:
                 if not s:
                     s = Sincronizacion(
@@ -41,7 +41,7 @@ class GoogleModel:
                     )
                     session.add(s)
                 else:
-                    if clave['actualizado'] != 'null' and parse(clave['actualizado']) > s.clave_actualizada:
+                    if clave['actualizado'] and clave['actualizado'] != 'null' and parse(clave['actualizado']) > s.clave_actualizada:
                         s.clave = clave['clave'],
                         s.clave_actualizada = parse(clave['actualizado'])
                 session.commit()
