@@ -31,56 +31,58 @@ class GoogleModel:
     def sincronizarUsuarios(cls):
         usuarios = requests.get(cls.usuarios_url + '/usuarios/?c=True').json()
         session = Session()
-        for u in usuarios:
-            s = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
-            clave = u['claves'][0] if len(u['claves']) > 0 else None
-            if clave:
-                if not s:
-                    s = Sincronizacion(
-                        id=u['id'],
-                        dni=u['dni'],
-                        clave_id=clave['id'],
-                        clave=clave['clave'],
-                        clave_actualizada = parse(clave['actualizado']) if clave['actualizado'] and clave['actualizado'] != 'null' else parse(clave['creado'])
-                    )
-                    session.add(s)
-                else:
-                    if clave['actualizado'] and clave['actualizado'] != 'null' and parse(clave['actualizado']) > s.clave_actualizada:
-                        s.clave = clave['clave'],
-                        s.clave_actualizada = parse(clave['actualizado'])
-                session.commit()
+        try:
+            for u in usuarios:
+                s = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
+                clave = u['claves'][0] if len(u['claves']) > 0 else None
+                if clave:
+                    if not s:
+                        s = Sincronizacion(
+                            id=u['id'],
+                            dni=u['dni'],
+                            clave_id=clave['id'],
+                            clave=clave['clave'],
+                            clave_actualizada = parse(clave['actualizado']) if clave['actualizado'] and clave['actualizado'] != 'null' else parse(clave['creado'])
+                        )
+                        session.add(s)
+                    else:
+                        if clave['actualizado'] and clave['actualizado'] != 'null' and parse(clave['actualizado']) > s.clave_actualizada:
+                            s.clave = clave['clave'],
+                            s.clave_actualizada = parse(clave['actualizado'])
+                    session.commit()
 
-        return {'estado':'OK'}
-
+            return {'estado':'OK'}
+        finally:
+            session.close()
 
     @classmethod
     def sincronizar(cls):
         session = Session()
-        q = session.query(Sincronizacion).filter(or_(Sincronizacion.sincronizado == None, Sincronizacion.sincronizado < Sincronizacion.clave_actualizada))
-        # return q.all()
+        try:
+            q = session.query(Sincronizacion).filter(or_(Sincronizacion.sincronizado == None, Sincronizacion.sincronizado < Sincronizacion.clave_actualizada))
 
+            sync = []
+            noSync = []
+            service = GAuthApis.getService()
+            fecha = datetime.datetime.now()
+            for s in q:
+                userGoogle = s.dni + '@econo.unlp.edu.ar'
+                try:
+                    #update user
+                    r = service.users().update(userKey=userGoogle,body={"password":s.clave}).execute()
+                    qq = session.query(Sincronizacion).filter(Sincronizacion.id == s.id)
+                    ss = qq.all()[0]
+                    ss.sincronizado = fecha
+                    session.commit()
+                    sync.append(s.dni)
 
-        sync = []
-        noSync = []
-        service = GAuthApis.getService()
-        fecha = datetime.datetime.now()
-        for s in q:
-            userGoogle = s.dni + '@econo.unlp.edu.ar'
-            try:
-                #update user
-                r = service.users().update(userKey=userGoogle,body={"password":s.clave}).execute()
-                qq = session.query(Sincronizacion).filter(Sincronizacion.id == s.id)
-                ss = qq.all()[0]
-                ss.sincronizado = fecha
-                session.commit()
-                sync.append(s.dni)
+                except errors.HttpError as err:
+                    print("el usuario no existe")
+                    noSync.append(s.dni)
 
-            except errors.HttpError as err:
-                print("el usuario no existe")
-                noSync.append(s.dni)
-                ok = False
-
-        return {'sincronizados':sync, 'noSincronizados':noSync}
+            return {'sincronizados':sync, 'noSincronizados':noSync}
+        finally:
+            session.close()
 
 
         @classmethod

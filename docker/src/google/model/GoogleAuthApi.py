@@ -4,9 +4,6 @@
 
     aca estan los scopes
     https://developers.google.com/identity/protocols/googlescopes
-
-    sudo pip3 install --upgrade google-api-python-client
-    sudo pip3 install httplib2
 '''
 
 import os
