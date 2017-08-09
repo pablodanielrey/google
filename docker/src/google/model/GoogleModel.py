@@ -1,10 +1,13 @@
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
+from google.model.GoogleAuthApi import GAuthApis
 
 import os
 import requests
 from dateutil.parser import parse
 import datetime
+import hashlib
+
 
 from . import Session
 from .entities import *
@@ -49,38 +52,34 @@ class GoogleModel:
         return {'estado':'OK'}
 
 
-
-
     @classmethod
     def sincronizar(cls):
         session = Session()
         q = session.query(Sincronizacion).filter(or_(Sincronizacion.sincronizado == None, Sincronizacion.sincronizado < Sincronizacion.clave_actualizada))
         return q.all()
 
-        """
 
-        session = Session()
-        q = session.query(Sincronizacion)
-        q = q.order_by(Sincronizacion.sincronizado.desc()).limit(1)
-
-        for s in q:
-            s.id
-            s.sincronizado
-
+        sync = []
+        noSync = []
+        service = GAuthApis.getService()
         fecha = datetime.datetime.now()
-        '''
-            sincronizo a google
-            for c in claves:
-                sincr ---> google
-                if sinc == ok:
-                    q = session.query(Sincronizacion).filter(Sincronizacion.id == sinc.id)
-                    ss = q.all()[0]
-                    ss.sincronizado = fecha
-                    ss.save()
-        ''''
-        """
+        for s in q:
+            userGoogle = s.dni + '@econo.unlp.edu.ar'
+            try:
+                #update user
+                r = service.users().update(userKey=userGoogle,body={"password":s.clave}).execute()
+                qq = session.query(Sincronizacion).filter(Sincronizacion.id == sinc.id)
+                ss = qq.all()[0]
+                ss.sincronizado = fecha
+                ss.save()
+                sync.append(s.dni)
 
-        return {'estado':'OK'}
+            except errors.HttpError as err:
+                print("el usuario no existe")
+                noSync.append(s.dni)
+                ok = False
+
+        return {'sincronizados':sync, 'noSincronizados':noSync}
 
 
         @classmethod
