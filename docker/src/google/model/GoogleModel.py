@@ -29,7 +29,7 @@ class GoogleModel:
 
     @classmethod
     def sincronizarUsuarios(cls):
-        usuarios = requests.get(cls.usuarios_url + '/usuarios/?c=True').json()
+        usuarios = requests.get(cls.usuarios_url + '/usuarios/?c=True&fecha_actualizado=').json()
         session = Session()
         try:
             for u in usuarios:

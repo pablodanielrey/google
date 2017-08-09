@@ -10,15 +10,29 @@ from rest_utils import register_encoder
 app = Flask(__name__)
 register_encoder(app)
 
-@app.route('/google/api/v1.0/sincronizar', methods=['GET'])
+@app.route('/google/api/v1.0/sincronizar_clave', methods=['GET'])
 @jsonapi
 def sincronizar():
-    return GoogleModel.sincronizar()
+    return GoogleModel.sincronizar_clave()
+
+@app.route('/google/api/v1.0/sincronizar_usuario', methods=['GET'])
+@jsonapi
+def sincronizar():
+    return GoogleModel.sincronizar_usuario()
+
 
 @app.route('/google/api/v1.0/sincronizar_usuarios', methods=['GET'])
 @jsonapi
 def sincronizarUsuarios():
     return GoogleModel.sincronizarUsuarios()
+
+@app.route('/google/api/v1.0/sincronizar_usuarios/<uid>', methods=['PUT','POST'])
+@jsonapi
+def sincronizarUsuario(uid):
+    ''' toma de la base de usuarios los datos y lo sincroniza internamente con la base del sistema de google '''
+    assert uid is not None
+    return GoogleModel.sincronizarUsuario(uid)
+
 
 
 @app.after_request
