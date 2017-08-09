@@ -7,6 +7,7 @@ import requests
 from dateutil.parser import parse
 import datetime
 import hashlib
+from apiclient import errors
 
 
 from . import Session
@@ -56,7 +57,7 @@ class GoogleModel:
     def sincronizar(cls):
         session = Session()
         q = session.query(Sincronizacion).filter(or_(Sincronizacion.sincronizado == None, Sincronizacion.sincronizado < Sincronizacion.clave_actualizada))
-        return q.all()
+        # return q.all()
 
 
         sync = []
@@ -68,10 +69,12 @@ class GoogleModel:
             try:
                 #update user
                 r = service.users().update(userKey=userGoogle,body={"password":s.clave}).execute()
-                qq = session.query(Sincronizacion).filter(Sincronizacion.id == sinc.id)
+                qq = session.query(Sincronizacion).filter(Sincronizacion.id == s.id)
                 ss = qq.all()[0]
+                print("-----------------------------------")
+                print(ss.__dict__)
                 ss.sincronizado = fecha
-                ss.save()
+                session.commit()
                 sync.append(s.dni)
 
             except errors.HttpError as err:
