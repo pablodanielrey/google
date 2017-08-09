@@ -71,8 +71,6 @@ class GoogleModel:
                 r = service.users().update(userKey=userGoogle,body={"password":s.clave}).execute()
                 qq = session.query(Sincronizacion).filter(Sincronizacion.id == s.id)
                 ss = qq.all()[0]
-                print("-----------------------------------")
-                print(ss.__dict__)
                 ss.sincronizado = fecha
                 session.commit()
                 sync.append(s.dni)
