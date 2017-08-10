@@ -1,4 +1,4 @@
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import joinedload
 from google.model.GoogleAuthApi import GAuthApis
 
@@ -23,15 +23,20 @@ class GoogleModel:
         q = q.limit(limit) if limit else q
         return q
 
-    @staticmethod
-    def obtenerUsuario(usuario):
-        return requests.get(cls.usuarios_url + '/usuarios/{}'.format(usuario)).json()[0]
 
     @classmethod
-    def sincronizarUsuarios(cls):
-        usuarios = requests.get(cls.usuarios_url + '/usuarios/?c=True&fecha_actualizado=').json()
+    def actualizarUsuarios(cls, uid=None):
+        usuarios = []
         session = Session()
         try:
+            if uid:
+                usuarios.append(requests.get(cls.usuarios_url + '/usuarios/'+ uid +'?c=True').json())
+            else:
+                user = session.query(func.max(Sincronizacion.actualizado))
+                print(user)
+                usuarios = requests.get(cls.usuarios_url + '/usuarios/?c=True&fecha_actualizado=').json()
+                return user
+            return "ok"
             for u in usuarios:
                 s = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
                 clave = u['claves'][0] if len(u['claves']) > 0 else None
@@ -56,7 +61,7 @@ class GoogleModel:
             session.close()
 
     @classmethod
-    def sincronizar(cls):
+    def sincronizarClave(cls):
         session = Session()
         try:
             q = session.query(Sincronizacion).filter(or_(Sincronizacion.sincronizado == None, Sincronizacion.sincronizado < Sincronizacion.clave_actualizada))

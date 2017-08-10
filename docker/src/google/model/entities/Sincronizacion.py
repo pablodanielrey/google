@@ -5,7 +5,7 @@ from model_utils import Base
 
 class DatosDeSincronizacion(Base):
 
-    __tablename__ = 'sincronizacion'
+    __tablename__ = 'datos'
     __table_args__ = ({'schema': 'google'})
 
     fecha_sincronizacion = Column(DateTime)
@@ -23,7 +23,6 @@ class Sincronizacion(Base):
     clave = Column(String)
     clave_actualizada = Column(DateTime)
     clave_sincronizada = Column(DateTime)
-
     emails = Column(String)
     usuario_creado = Column(DateTime)
     usuario_actualizado = Column(DateTime)

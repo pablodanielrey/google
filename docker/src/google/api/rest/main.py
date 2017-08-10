@@ -10,28 +10,55 @@ from rest_utils import register_encoder
 app = Flask(__name__)
 register_encoder(app)
 
-@app.route('/google/api/v1.0/sincronizar_clave', methods=['GET'])
+@app.route('/google/api/v1.0/actualizar_usuarios/', methods=['OPTIONS'])
+@app.route('/google/api/v1.0/actualizar_usuarios/<uid>', methods=['OPTIONS'])
+@app.route('/google/api/v1.0/sincronizar_claves/', methods=['OPTIONS'])
+@app.route('/google/api/v1.0/sincronizar_usuarios/', methods=['OPTIONS'])
+def options(uid=None):
+    '''
+        para autorizar el CORS
+        https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
+    '''
+    print(request.headers)
+    o = request.headers.get('Origin')
+    rm = request.headers.get('Access-Control-Request-Method')
+    rh = request.headers.get('Access-Control-Request-Headers')
+
+    r = make_response()
+    r.headers[''] = 'PUT,POST,GET,HEAD,DELETE'
+    r.headers['Access-Control-Allow-Methods'] = 'PUT,POST,GET,HEAD,DELETE'
+    r.headers['Access-Control-Allow-Origin'] = '*'
+    r.headers['Access-Control-Allow-Headers'] = rh
+    r.headers['Access-Control-Max-Age'] = 1
+    return r
+
+
+
+# actualiza las bases de usuarios con la interna del sistema
+@app.route('/google/api/v1.0/actualizar_usuarios/', methods=['GET'], defaults={'uid':None})
+@app.route('/google/api/v1.0/actualizar_usuarios/<uid>', methods=['GET'])
 @jsonapi
-def sincronizar():
-    return GoogleModel.sincronizar_clave()
+def actualizarUsuario(uid):
+    ''' toma de la base de usuarios los datos y lo sincroniza internamente con la base del sistema de google '''
+    return GoogleModel.actualizarUsuarios(uid)
 
-@app.route('/google/api/v1.0/sincronizar_usuario', methods=['GET'])
+
+
+# sincroniza las claves pendientes con google
+@app.route('/google/api/v1.0/sincronizar_claves/', methods=['GET'])
 @jsonapi
-def sincronizar():
-    return GoogleModel.sincronizar_usuario()
+def sincronizarClaves():
+    return GoogleModel.sincronizarClaves()
 
 
+
+# actualiza los usuarios pendientes con Google, si no existen los crea
 @app.route('/google/api/v1.0/sincronizar_usuarios', methods=['GET'])
 @jsonapi
 def sincronizarUsuarios():
     return GoogleModel.sincronizarUsuarios()
 
-@app.route('/google/api/v1.0/sincronizar_usuarios/<uid>', methods=['PUT','POST'])
-@jsonapi
-def sincronizarUsuario(uid):
-    ''' toma de la base de usuarios los datos y lo sincroniza internamente con la base del sistema de google '''
-    assert uid is not None
-    return GoogleModel.sincronizarUsuario(uid)
+
 
 
 

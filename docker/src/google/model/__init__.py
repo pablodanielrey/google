@@ -19,7 +19,9 @@ __all__ = [
     'GoogleModel'
 ]
 
-from .entities import *
+def crear_tablas():
+    from .entities import Sincronizacion
+    from sqlalchemy.schema import CreateSchema
 
-def crear_schema():
+    engine.execute(CreateSchema('google'))
     Base.metadata.create_all(engine)
