@@ -39,51 +39,54 @@ class GoogleModel:
                 if fecha:
                     # filter = filter + '&f=' + str(fecha) descomentar cuando se pase a produccion
                     filter = filter + '&f=2017-08-02%2008:08:46.573983' #comentar cuando se pase a produccion
-                usuarios = requests.get(cls.usuarios_url + filter + '&limit=10').json() #comentar cuando se pase a produccion
+                usuarios = requests.get(cls.usuarios_url + filter + '&limit=50').json() #comentar cuando se pase a produccion
                 # usuarios = requests.get(cls.usuarios_url + filter).json() descomentar cuando se pase a produccion
 
+            actualizados = 0
+            creados = 0
             for u in usuarios:
                 emails = [m['email'] for m in u['mails'] if 'econo.unlp.edu.ar' in m['email']]
-                print(emails)
-                continue
-                r = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
+                sinc = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
+
                 clave = u['claves'][0] if len(u['claves']) > 0 else None
-                if clave is None:
+                if clave is None or len(emails) <= 0:
+                    print("No tiene correos o clave")
                     continue
 
-                if r[0]:
-                    # actualizar
-                    print('update' + r[0])
+                emails = ",".join([x for x in sorted(emails)])
+                clave_actualizada = parse(clave['actualizado']) if clave['actualizado'] and clave['actualizado'] != 'null' else parse(clave['creado'])
+
+                if sinc:
+                    ''' actualizo los datos que fueron modificados '''
+                    modificado = False
+                    if sinc.clave != clave['clave']:
+                        sinc.clave = clave['clave']
+                        sinc.clave_actualizada = clave_actualizada
+                        sinc.clave_id = clave['id']
+                        modificado = True
+
+                    if emails != sinc.emails:
+                        sinc.emails = emails
+                        modificado = True
+
+                    actualizados = actualizados + 1 if modificado else actualizados
+
                 else:
-                    # crear usuario
+                    ''' crear usuario '''
                     s = Sincronizacion(
                         id=u['id'],
                         dni=u['dni'],
                         clave_id=clave['id'],
                         clave=clave['clave'],
-                        clave_actualizada = parse(clave['actualizado']) if clave['actualizado'] and clave['actualizado'] != 'null' else parse(clave['creado'])
+                        clave_actualizada=parse(clave['actualizado']) if clave['actualizado'] and clave['actualizado'] != 'null' else parse(clave['creado']),
+                        emails=emails
                     )
                     session.add(s)
+                    creados = creados + 1
 
-                '''
-                if clave:
-                    if not s:
-                        s = Sincronizacion(
-                            id=u['id'],
-                            dni=u['dni'],
-                            clave_id=clave['id'],
-                            clave=clave['clave'],
-                            clave_actualizada = parse(clave['actualizado']) if clave['actualizado'] and clave['actualizado'] != 'null' else parse(clave['creado'])
-                        )
-                        session.add(s)
-                    else:
-                        if clave['actualizado'] and clave['actualizado'] != 'null' and parse(clave['actualizado']) > s.clave_actualizada:
-                            s.clave = clave['clave'],
-                            s.clave_actualizada = parse(clave['actualizado'])
-                '''
                 session.commit()
 
-            return usuarios
+            return {'actualizados':actualizados, 'creados':creados}
         finally:
             session.close()
 
