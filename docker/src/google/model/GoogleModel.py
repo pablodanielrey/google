@@ -1,4 +1,4 @@
-from sqlalchemy import or_, func
+from sqlalchemy import or_, func, and_
 from sqlalchemy.orm import joinedload
 from google.model.GoogleAuthApi import GAuthApis
 
@@ -122,4 +122,40 @@ class GoogleModel:
 
     @classmethod
     def sincronizarUsuarios(cls):
-        return
+        session = Session()
+        try:
+            q = session.query(Sincronizacion).filter(or_(Sincronizacion.usuario_creado == None,
+                and_(Sincronizacion.usuario_actualizado == None, Sincronizacion.actualizado > Sincronizacion.usuario_creado),
+                Sincronizacion.actualizado > Sincronizacion.usuario_actualizado
+                ))
+
+            creados = []
+            actualizados = []
+            service = GAuthApis.getService()
+            fecha = datetime.datetime.now()
+
+            for s in q:
+                userGoogle = s.dni + '@econo.unlp.edu.ar'
+                user = requests.get(cls.usuarios_url + '/usuarios/'+ s.id +'?c=True').json()
+                try:
+                    # datos a actualizar
+                    datos = {}
+                    datos["aliases"] = s.emails.split(",")
+                    datos["changePasswordAtNextLogin"] = False
+                    datos["name"] = {"familiyName": user["nombre"], "givenName": user["apellido"], "fullName": user["nombre"] + " " + user["apellido"]}
+
+                    actualizados.append(datos)
+                except errors.HttpError as err:
+                    # crear usuario
+                    datos = {}
+                    datos.aliases = s.emails.split(",")
+                    datos.changePasswordAtNextLogin = False
+                    datos.primaryEmail = userGoogle
+                    datos["name"] = {"familiyName": user["nombre"], "givenName": user["apellido"], "fullName": user["nombre"] + " " + user["apellido"]}
+                    datos.password = s.clave
+
+                    creados.append(datos)
+
+            return {'creados':creados, 'actualizados':actualizados}
+        finally:
+            session.close()
