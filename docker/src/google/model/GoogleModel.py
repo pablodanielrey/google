@@ -45,7 +45,7 @@ class GoogleModel:
             actualizados = 0
             creados = 0
             for u in usuarios:
-                emails = [m['email'] for m in u['mails'] if 'econo.unlp.edu.ar' in m['email']]
+                emails = [m['email'] for m in u['mails'] if 'econo.unlp.edu.ar' in m['email'] and m['confirmado']]
                 sinc = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
 
                 clave = u['claves'][0] if len(u['claves']) > 0 else None
@@ -91,10 +91,10 @@ class GoogleModel:
             session.close()
 
     @classmethod
-    def sincronizarClave(cls):
+    def sincronizarClaves(cls):
         session = Session()
         try:
-            q = session.query(Sincronizacion).filter(or_(Sincronizacion.sincronizado == None, Sincronizacion.sincronizado < Sincronizacion.clave_actualizada))
+            q = session.query(Sincronizacion).filter(or_(Sincronizacion.clave_sincronizada == None, Sincronizacion.clave_sincronizada < Sincronizacion.clave_actualizada))
 
             sync = []
             noSync = []
@@ -107,7 +107,7 @@ class GoogleModel:
                     r = service.users().update(userKey=userGoogle,body={"password":s.clave}).execute()
                     qq = session.query(Sincronizacion).filter(Sincronizacion.id == s.id)
                     ss = qq.all()[0]
-                    ss.sincronizado = fecha
+                    ss.clave_sincronizada = fecha
                     session.commit()
                     sync.append(s.dni)
 
@@ -120,12 +120,6 @@ class GoogleModel:
             session.close()
 
 
-        @classmethod
-        def sincronizarClave(cls,id):
-            cls.sincronizarUsuarios(id)
-            cls.sincronizar()
-            return
-
-
-
-        return {status:'OK'}
+    @classmethod
+    def sincronizarUsuarios(cls):
+        return
