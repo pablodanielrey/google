@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 def crear_tablas():
-    from .entities import Sincronizacion
+    from .entities import Sincronizacion, DatosDeSincronizacion
     from sqlalchemy.schema import CreateSchema
 
     engine.execute(CreateSchema('google'))

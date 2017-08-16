@@ -1,6 +1,7 @@
 
-from .Sincronizacion import Sincronizacion
+from .Sincronizacion import Sincronizacion, DatosDeSincronizacion
 
 __all__ = [
-    'Sincronizacion'
+    'Sincronizacion',
+    'DatosDeSincronizacion'
 ]

@@ -3,6 +3,7 @@ from sqlalchemy.orm import joinedload
 from google.model.GoogleAuthApi import GAuthApis
 
 import os
+import uuid
 import requests
 from dateutil.parser import parse
 import datetime
@@ -108,6 +109,10 @@ class GoogleModel:
                     qq = session.query(Sincronizacion).filter(Sincronizacion.id == s.id)
                     ss = qq.all()[0]
                     ss.clave_sincronizada = fecha
+
+                    ds = cls._crearLog(r)
+                    session.add(ds)
+
                     session.commit()
                     sync.append(s.dni)
 
@@ -119,6 +124,13 @@ class GoogleModel:
         finally:
             session.close()
 
+    @classmethod
+    def _crearLog(cls, r):
+        return DatosDeSincronizacion(
+                    id= str(uuid.uuid4()),
+                    fecha_sincronizacion=datetime.datetime.now(),
+                    respuesta=str(r)
+                )
 
     @classmethod
     def sincronizarUsuarios(cls):
@@ -140,19 +152,61 @@ class GoogleModel:
                 try:
                     # datos a actualizar
                     datos = {}
-                    datos["aliases"] = s.emails.split(",")
-                    datos["changePasswordAtNextLogin"] = False
+
                     datos["name"] = {"familiyName": user["nombre"], "givenName": user["apellido"], "fullName": user["nombre"] + " " + user["apellido"]}
+
+                    r = service.users().update(userKey=userGoogle,body=datos).execute()
+                    ds = cls._crearLog(r)
+                    session.add(ds)
+
+                    # actualizar alias
+                    r = service.users().aliases().list(userKey=userGoogle).execute()
+                    aliases = [a['alias'] for a in r.get('aliases', [])]
+                    for e in s.emails.split(","):
+                        if e not in aliases:
+                            r = service.users().aliases().insert(userKey=userGoogle,body={"alias":e}).execute()
+                            ds = cls._crearLog(r)
+                            session.add(ds)
+
+                            # falta agregar el alias en las preferencias del usuarios para que pueda "enviar como"
+
+
+                    s.usuario_actualizado = fecha
+
+                    session.commit()
 
                     actualizados.append(datos)
                 except errors.HttpError as err:
                     # crear usuario
                     datos = {}
-                    datos.aliases = s.emails.split(",")
-                    datos.changePasswordAtNextLogin = False
-                    datos.primaryEmail = userGoogle
-                    datos["name"] = {"familiyName": user["nombre"], "givenName": user["apellido"], "fullName": user["nombre"] + " " + user["apellido"]}
-                    datos.password = s.clave
+                    datos["aliases"] = s.emails.split(",")
+                    datos["changePasswordAtNextLogin"] = False
+                    datos["primaryEmail"] = userGoogle
+                    datos["emails"] = [{'address': userGoogle, 'primary': True, 'type': 'work'}]
+
+                    datos["name"] = {"givenName": user["nombre"], "fullName": user["nombre"] + " " + user["apellido"], "familyName": user["apellido"]}
+                    datos["password"] = s.clave
+                    datos["externalIds"] = [{'type': 'custom', 'value': s.id}]
+
+
+                    r = service.users().insert(body=datos).execute()
+
+
+                    ds = cls._crearLog(r)
+                    session.add(ds)
+
+                    # crear alias
+                    for e in s.emails.split(","):
+                            r = service.users().aliases().insert(userKey=userGoogle,body={"alias":e}).execute()
+                            ds = cls._crearLog(r)
+                            session.add(ds)
+
+                            # falta agregar el alias en las preferencias del usuarios para que pueda "enviar como"
+
+                    s.usuario_creado = fecha
+                    s.usuario_actualizado = fecha
+
+                    session.commit()
 
                     creados.append(datos)
 
