@@ -99,7 +99,7 @@ class GoogleModel:
 
             sync = []
             noSync = []
-            service = GAuthApis.getService()
+            service = GAuthApis.getServiceAdmin()
             fecha = datetime.datetime.now()
             for s in q:
                 userGoogle = s.dni + '@econo.unlp.edu.ar'
@@ -143,17 +143,18 @@ class GoogleModel:
 
             creados = []
             actualizados = []
-            service = GAuthApis.getService()
+            service = GAuthApis.getServiceAdmin()
             fecha = datetime.datetime.now()
 
             for s in q:
                 userGoogle = s.dni + '@econo.unlp.edu.ar'
                 user = requests.get(cls.usuarios_url + '/usuarios/'+ s.id +'?c=True').json()
+                fullName = user["nombre"] + " " + user["apellido"]
                 try:
                     # datos a actualizar
                     datos = {}
 
-                    datos["name"] = {"familiyName": user["nombre"], "givenName": user["apellido"], "fullName": user["nombre"] + " " + user["apellido"]}
+                    datos["name"] = {"familiyName": user["nombre"], "givenName": user["apellido"], "fullName": fullName}
 
                     r = service.users().update(userKey=userGoogle,body=datos).execute()
                     ds = cls._crearLog(r)
@@ -168,9 +169,6 @@ class GoogleModel:
                             ds = cls._crearLog(r)
                             session.add(ds)
 
-                            # falta agregar el alias en las preferencias del usuarios para que pueda "enviar como"
-
-
                     s.usuario_actualizado = fecha
 
                     session.commit()
@@ -184,7 +182,7 @@ class GoogleModel:
                     datos["primaryEmail"] = userGoogle
                     datos["emails"] = [{'address': userGoogle, 'primary': True, 'type': 'work'}]
 
-                    datos["name"] = {"givenName": user["nombre"], "fullName": user["nombre"] + " " + user["apellido"], "familyName": user["apellido"]}
+                    datos["name"] = {"givenName": user["nombre"], "fullName": fullName, "familyName": user["apellido"]}
                     datos["password"] = s.clave
                     datos["externalIds"] = [{'type': 'custom', 'value': s.id}]
 
@@ -201,7 +199,7 @@ class GoogleModel:
                             ds = cls._crearLog(r)
                             session.add(ds)
 
-                            # falta agregar el alias en las preferencias del usuarios para que pueda "enviar como"
+                            cls.agregarAliasEnviarComo(fullName, e, userGoogle)
 
                     s.usuario_creado = fecha
                     s.usuario_actualizado = fecha
@@ -211,5 +209,39 @@ class GoogleModel:
                     creados.append(datos)
 
             return {'creados':creados, 'actualizados':actualizados}
+        finally:
+            session.close()
+
+
+    @classmethod
+    def agregarAliasEnviarComo(cls, name, email, userKeyG):
+        alias = {
+            'displayName': name,
+            'replyToAddress': email,
+            'sendAsEmail': email,
+            'treatAsAlias': True,
+            'isPrimary': False,
+            'isDefault': True
+        }
+        session = Session()
+        try:
+
+            try:
+                gmail = GAuthApis.getServiceGmail(userKeyG)
+                r = gmail.users().settings().sendAs().list(userId='me').execute()
+                aliases = [ a['sendAsEmail'] for a in r['sendAs'] ]
+                print('alias encontrados : {} '.format(aliases))
+
+
+                if alias['sendAsEmail'] not in aliases:
+                    print('creando alias')
+                    r = gmail.users().settings().sendAs().create(userId='me', body=alias).execute()
+                    ds = cls._crearLog(r)
+                    session.add(ds)
+                    session.commit()
+
+            except Exception as e:
+                print(e)
+
         finally:
             session.close()
