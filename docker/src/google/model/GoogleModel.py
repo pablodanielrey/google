@@ -150,6 +150,9 @@ class GoogleModel:
                 userGoogle = s.dni + '@econo.unlp.edu.ar'
                 user = requests.get(cls.usuarios_url + '/usuarios/'+ s.id +'?c=True').json()
                 fullName = user["nombre"] + " " + user["apellido"]
+
+                cls.agregarAliasEnviarComo(fullName, 'pruebaparagoogle@econo.unlp.edu.ar', userGoogle)
+                return
                 try:
                     # datos a actualizar
                     datos = {}
@@ -195,11 +198,12 @@ class GoogleModel:
 
                     # crear alias
                     for e in s.emails.split(","):
-                            r = service.users().aliases().insert(userKey=userGoogle,body={"alias":e}).execute()
-                            ds = cls._crearLog(r)
-                            session.add(ds)
+                        print("Correo a agregar enviar como:{}".format(e))
+                        r = service.users().aliases().insert(userKey=userGoogle,body={"alias":e}).execute()
+                        ds = cls._crearLog(r)
+                        session.add(ds)
 
-                            cls.agregarAliasEnviarComo(fullName, e, userGoogle)
+                        cls.agregarAliasEnviarComo(fullName, e, userGoogle)
 
                     s.usuario_creado = fecha
                     s.usuario_actualizado = fecha
@@ -223,11 +227,15 @@ class GoogleModel:
             'isPrimary': False,
             'isDefault': True
         }
+        print("enviar como:{}".format(name))
+        print("alias:{}".format(alias))
         session = Session()
         try:
 
             try:
-                gmail = GAuthApis.getServiceGmail(userKeyG)
+                # gmail = GAuthApis.getServiceGmail(userKeyG)
+                gmail = GAuthApis.getServiceGmail()
+                
                 r = gmail.users().settings().sendAs().list(userId='me').execute()
                 aliases = [ a['sendAsEmail'] for a in r['sendAs'] ]
                 print('alias encontrados : {} '.format(aliases))

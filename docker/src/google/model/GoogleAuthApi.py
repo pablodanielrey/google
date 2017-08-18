@@ -61,7 +61,7 @@ class GAuthApis:
     def getServiceGmail(cls, username=adminGoogle, version='v1'):
         api='gmail'
         ''' crea un servicio de acceso a las apis y lo retora '''
-        credentials = cls.getCredentials(username, SCOPESGMAIL)
+        credentials = cls.getCredentials(username, cls.SCOPESGMAIL)
         http = credentials.authorize(httplib2.Http())
         service = discovery.build(api, version, http=http)
         return service
