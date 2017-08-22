@@ -151,8 +151,7 @@ class GoogleModel:
                 user = requests.get(cls.usuarios_url + '/usuarios/'+ s.id +'?c=True').json()
                 fullName = user["nombre"] + " " + user["apellido"]
 
-                cls.agregarAliasEnviarComo(fullName, 'pruebaparagoogle@econo.unlp.edu.ar', userGoogle)
-                return
+
                 try:
                     # datos a actualizar
                     datos = {}
@@ -233,9 +232,8 @@ class GoogleModel:
         try:
 
             try:
-                # gmail = GAuthApis.getServiceGmail(userKeyG)
-                gmail = GAuthApis.getServiceGmail()
-                
+                gmail = GAuthApis.getServiceGmail(userKeyG)
+
                 r = gmail.users().settings().sendAs().list(userId='me').execute()
                 aliases = [ a['sendAsEmail'] for a in r['sendAs'] ]
                 print('alias encontrados : {} '.format(aliases))
