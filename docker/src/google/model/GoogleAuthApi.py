@@ -48,20 +48,19 @@ class GAuthApis:
         return admin_credentials
 
     @classmethod
-    def getServiceAdmin(cls, username=adminGoogle, version='directory_v1'):
-        api='admin'
-        ''' crea un servicio de acceso a las apis y lo retora '''
-        credentials = cls.getCredentials(username, cls.SCOPES)
+    def getService(cls, username, version, api, scopes):
+        credentials = cls.getCredentials(username, scopes)
         http = credentials.authorize(httplib2.Http())
         service = discovery.build(api, version, http=http)
         return service
+
+    @classmethod
+    def getServiceAdmin(cls, username=adminGoogle, version='directory_v1'):
+        api='admin'
+        return cls.getService(username, version, api, cls.SCOPES)
 
 
     @classmethod
     def getServiceGmail(cls, username=adminGoogle, version='v1'):
         api='gmail'
-        ''' crea un servicio de acceso a las apis y lo retora '''
-        credentials = cls.getCredentials(username, cls.SCOPESGMAIL)
-        http = credentials.authorize(httplib2.Http())
-        service = discovery.build(api, version, http=http)
-        return service
+        return cls.getService(username, version, api, cls.SCOPESGMAIL)

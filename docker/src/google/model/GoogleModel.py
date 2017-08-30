@@ -172,6 +172,9 @@ class GoogleModel:
                             session.add(ds)
 
                     s.usuario_actualizado = fecha
+                    s.actualizado = fecha
+                    if s.usuario_creado is None:
+                        s.usuario_creado = fecha
 
                     session.commit()
 
