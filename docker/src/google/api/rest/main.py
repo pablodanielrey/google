@@ -14,6 +14,7 @@ register_encoder(app)
 @app.route('/google/api/v1.0/actualizar_usuarios/<uid>', methods=['OPTIONS'])
 @app.route('/google/api/v1.0/sincronizar_claves/', methods=['OPTIONS'])
 @app.route('/google/api/v1.0/sincronizar_usuarios/', methods=['OPTIONS'])
+@app.route('/google/api/v1.0/enviar_como/<uid>', methods=['OPTIONS'])
 def options(uid=None):
     '''
         para autorizar el CORS
@@ -57,6 +58,11 @@ def sincronizarClaves():
 def sincronizarUsuarios():
     return GoogleModel.sincronizarUsuarios()
 
+# agrega los e-mails del id pasado como parametro como alias en gmail (enviarComo)
+@app.route('/google/api/v1.0/enviar_como/<uid>', methods=['GET'])
+@jsonapi
+def enviarComo(uid):
+    return GoogleModel.agregarEnviarComo(uid)
 
 
 @app.after_request

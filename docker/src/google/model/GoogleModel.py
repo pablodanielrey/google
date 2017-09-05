@@ -9,7 +9,7 @@ from dateutil.parser import parse
 import datetime
 import hashlib
 from apiclient import errors
-
+import time
 
 from . import Session
 from .entities import *
@@ -134,6 +134,7 @@ class GoogleModel:
 
     @classmethod
     def sincronizarUsuarios(cls):
+
         session = Session()
         try:
             q = session.query(Sincronizacion).filter(or_(Sincronizacion.usuario_creado == None,
@@ -198,6 +199,7 @@ class GoogleModel:
                     ds = cls._crearLog(r)
                     session.add(ds)
 
+
                     # crear alias
                     for e in s.emails.split(","):
                         print("Correo a agregar enviar como:{}".format(e))
@@ -205,10 +207,19 @@ class GoogleModel:
                         ds = cls._crearLog(r)
                         session.add(ds)
 
-                        cls.agregarAliasEnviarComo(fullName, e, userGoogle)
+
 
                     s.usuario_creado = fecha
                     s.usuario_actualizado = fecha
+
+
+                    '''
+                    # agregar los correos a enviar como
+                    print("Esperar 2 segundos para que se cree el usuario")
+                    time.sleep(2)
+                    for e in s.emails.split(","):
+                        cls.agregarAliasEnviarComo(fullName, e, userGoogle)
+                    '''
 
                     session.commit()
 
@@ -218,6 +229,22 @@ class GoogleModel:
         finally:
             session.close()
 
+    @classmethod
+    def agregarEnviarComo(cls, id):
+        session = Session()
+        try:
+            s = session.query(Sincronizacion).filter(Sincronizacion.id == id).one()
+            if s is None:
+                return False
+
+            userGoogle = s.dni + "@econo.unlp.edu.ar"
+            user = requests.get(cls.usuarios_url + '/usuarios/'+ s.id +'?c=True').json()
+            fullName = user["nombre"] + " " + user["apellido"]
+            for e in s.emails.split(","):
+                cls.agregarAliasEnviarComo(fullName, e, userGoogle)
+            return True
+        finally:
+            session.close()
 
     @classmethod
     def agregarAliasEnviarComo(cls, name, email, userKeyG):
