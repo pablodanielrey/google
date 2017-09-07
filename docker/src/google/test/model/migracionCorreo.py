@@ -13,7 +13,15 @@ def crearMensaje(api, version, username, file, labelIds):
 
     headers = Parser().parse(file)
     urlsafe = base64.urlsafe_b64encode(headers.as_string().encode()).decode()
-    return service.users().messages().insert(userId=username,internalDateSource='dateHeader',body={'raw': urlsafe, 'labelIds': labelIds}).execute()
+
+    num_tries = 0
+    while num_tries < 5:
+        try:
+            return service.users().messages().insert(userId=username,internalDateSource='dateHeader',body={'raw': urlsafe, 'labelIds': labelIds}).execute()
+        except Exception as e:
+            print(e)
+            num_tries += 1
+    return None
 
 def obtenerCorreos(api, version, username):
     scopes = ['https://www.googleapis.com/auth/gmail.readonly','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
