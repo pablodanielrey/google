@@ -13,8 +13,6 @@ def crearMensaje(api, version, username, file, labelIds):
 
     headers = Parser().parse(file)
     urlsafe = base64.urlsafe_b64encode(headers.as_string().encode()).decode()
-    print(headers)
-    print(urlsafe)
     return service.users().messages().insert(userId=username,internalDateSource='dateHeader',body={'raw': urlsafe, 'labelIds': labelIds}).execute()
 
 def obtenerCorreos(api, version, username):
@@ -69,6 +67,16 @@ def crearEtiqueta(userId, nombre):
     except errors.HttpError as err:
         print('An error occurred: %s' % error)
 
+def parsearEtiqueta(label):
+    if label == "Maildir":
+        return "INBOX"
+    elif label == "/Enviados" or label.lower() == "/sent":
+        return "SENT"
+    elif label == "/Borradores" or label.lower() == "/draft":
+        return "DRAFT"
+    else:
+        return label[1:]
+
 if __name__ == '__main__':
     version ='v1'
     api = 'gmail'
@@ -80,41 +88,58 @@ if __name__ == '__main__':
 
     (base, dirs, files) = next(os.walk(maildir))
 
-    omitir = ['.Sent', '.Enviados', '.Borradores', '.Draft','.Trash']
-    '''
+    omitir = ['.Sent', '.Enviados', '.Borradores', '.Draft','.Trash', '.Eliminados']
+
     labelsGoogle = obtenerLabels(username)
     etiquetasGoogle = [l["name"] for l in labelsGoogle]
     etiquetasNuevas = []
 
+    etiquetas = {}
+    for l in labelsGoogle:
+        etiquetas[l['name']] = l['id']
+
+    # creo las etiquetas en google
     for d in dirs:
         if patron.match(d) and d not in omitir:
             l = d.replace(".","/")[1:]
             if l not in etiquetasGoogle:
-                id = crearEtiqueta(username, l)
-                etiquetasNuevas.append({'id':id, 'dir':d})
+                e = crearEtiqueta(username, l)
+                etiquetasNuevas.append({'id': e['id'], 'name': e['name']})
+                etiquetas[e['name']] = e['id']
                 print(d)
 
-    print(etiquetasNuevas)
-    '''
+    print("Etiquetas creadas: {}".format(etiquetasNuevas))
 
+    # obtengo los correos a copiar en cada etiqueta
+    archivos = {}
     for (base, dirs, files) in os.walk(maildir):
         if base[-4:] in ['/cur','/new']:
-            print(base)
+            arr = base.split('/')
+            label = arr[-2].replace(".","/")
+            label = parsearEtiqueta(label)
+
+            if label in ["Trash", "Eliminados"]:
+                continue
+
+            if label in archivos:
+                e = archivos[label]
+                correos = [base + '/' + f for f in files]
+                e["files"].extend(correos)
+            else:
+                correos = [base + '/' + f for f in files]
+                archivos[label] = {'label': label, 'files': correos, 'labelId': etiquetas[label]}
 
 
-    exit()
+    # copio los correos a google
+    for label in archivos.keys():
+    # if "2013" in archivos.keys():
+        # label = "2013"
 
-
-
-    with open("google/test/model/mensaje", 'r') as file:
-
-        labelIds = ['INBOX']
-        print(crearMensaje(api, version, username, file, labelIds))
-
-        '''
-        id = '15e3d90f09f1d0d4'
-        correos = obtenerCorreos(api, version, username,labelIds)
-        correo = obtenerCorreo(api, version, username, id)
-
-        print(correo)
-        '''
+        files = archivos[label]
+        for archivo in files["files"]:
+            print("archivo a copiar " + archivo)
+            with open(archivo, 'r', encoding="latin-1") as file:
+                labelId = files["labelId"]
+                print("Mail a copiar {} label: {}".format(archivo, labelId))
+                crearMensaje(api, version, username, file, [labelId])
+                print("Mail copiado")
