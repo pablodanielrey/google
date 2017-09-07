@@ -4,7 +4,8 @@ import email
 from email.mime.text import MIMEText
 from email.parser import Parser
 from apiclient import errors
-
+import os
+import re
 
 def crearMensaje(api, version, username, file, labelIds):
     scopes = ['https://www.googleapis.com/auth/gmail.insert','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
@@ -52,9 +53,19 @@ def obtenerLabels(userId):
     try:
         response = service.users().labels().list(userId=userId).execute()
         labels = response['labels']
-        for label in labels:
-          print('Label id: %s - Label name: %s' % (label['id'], label['name']))
         return labels
+    except errors.HttpError as err:
+        print('An error occurred: %s' % error)
+
+def crearEtiqueta(userId, nombre):
+    scopes = ['https://mail.google.com/',
+              'https://www.googleapis.com/auth/gmail.modify',
+              'https://www.googleapis.com/auth/gmail.labels']
+
+    service = GAuthApis.getService('v1', 'gmail', scopes, userId)
+    try:
+        label = service.users().labels().create(userId=userId, body={'name':nombre}).execute()
+        return label["id"]
     except errors.HttpError as err:
         print('An error occurred: %s' % error)
 
@@ -63,15 +74,47 @@ if __name__ == '__main__':
     api = 'gmail'
     username = '31381082@econo.unlp.edu.ar'
 
-    file = open("google/test/model/mensaje", 'r')
+    patron = re.compile('\..+')
 
-    labelIds = ['INBOX']
-    print(crearMensaje(api, version, username, file, labelIds))
+    maildir = '/home/emanuel/econo/Maildir'
 
+    (base, dirs, files) = next(os.walk(maildir))
+
+    omitir = ['.Sent', '.Enviados', '.Borradores', '.Draft','.Trash']
     '''
-    id = '15e3d90f09f1d0d4'
-    correos = obtenerCorreos(api, version, username,labelIds)
-    correo = obtenerCorreo(api, version, username, id)
+    labelsGoogle = obtenerLabels(username)
+    etiquetasGoogle = [l["name"] for l in labelsGoogle]
+    etiquetasNuevas = []
 
-    print(correo)
+    for d in dirs:
+        if patron.match(d) and d not in omitir:
+            l = d.replace(".","/")[1:]
+            if l not in etiquetasGoogle:
+                id = crearEtiqueta(username, l)
+                etiquetasNuevas.append({'id':id, 'dir':d})
+                print(d)
+
+    print(etiquetasNuevas)
     '''
+
+    for (base, dirs, files) in os.walk(maildir):
+        if base[-4:] in ['/cur','/new']:
+            print(base)
+
+
+    exit()
+
+
+
+    with open("google/test/model/mensaje", 'r') as file:
+
+        labelIds = ['INBOX']
+        print(crearMensaje(api, version, username, file, labelIds))
+
+        '''
+        id = '15e3d90f09f1d0d4'
+        correos = obtenerCorreos(api, version, username,labelIds)
+        correo = obtenerCorreo(api, version, username, id)
+
+        print(correo)
+        '''
