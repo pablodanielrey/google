@@ -43,7 +43,7 @@ if __name__ == '__main__':
     SCOPES = ['https://www.googleapis.com/auth/apps.groups.settings']
     version='v1'
     api='groupssettings'
-    userId = '31381082@econo.unlp.edu.ar'
+    userId = os.environ['ADMIN_USER_GOOGLE']
 
     groupEmail = 'bandeja_colaborativa@econo.unlp.edu.ar'
     name = 'Nueva Bandeja Colaborativa'
