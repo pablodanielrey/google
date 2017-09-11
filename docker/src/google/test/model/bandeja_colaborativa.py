@@ -1,4 +1,5 @@
 from google.model.GoogleAuthApi import GAuthApis
+import sys, os
 
 def obtenerBandejaColaborativa(name, email):
     return {
@@ -45,8 +46,8 @@ if __name__ == '__main__':
     api='groupssettings'
     userId = os.environ['ADMIN_USER_GOOGLE']
 
-    groupEmail = 'bandeja_colaborativa@econo.unlp.edu.ar'
-    name = 'Nueva Bandeja Colaborativa'
+    groupEmail =  sys.argv[1]
+    name =  sys.argv[2]
 
     # group = crearGrupo(userId, name, groupEmail)
 

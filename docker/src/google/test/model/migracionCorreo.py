@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 from email.parser import Parser
 from apiclient import errors
 import os
-import re
+import re, sys
 
 def crearMensaje(api, version, username, file, labelIds):
     scopes = ['https://www.googleapis.com/auth/gmail.insert','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
@@ -88,11 +88,11 @@ def parsearEtiqueta(label):
 if __name__ == '__main__':
     version ='v1'
     api = 'gmail'
-    username = '31381082@econo.unlp.edu.ar'
+    username = sys.argv[1]
+    maildir = sys.argv[2]
 
     patron = re.compile('\..+')
 
-    maildir = '/home/emanuel/econo/Maildir'
 
     (base, dirs, files) = next(os.walk(maildir))
 
@@ -140,9 +140,6 @@ if __name__ == '__main__':
 
     # copio los correos a google
     for label in archivos.keys():
-    # if "2013" in archivos.keys():
-        # label = "2013"
-
         files = archivos[label]
         for archivo in files["files"]:
             print("archivo a copiar " + archivo)
