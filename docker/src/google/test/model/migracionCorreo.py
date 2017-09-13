@@ -86,7 +86,7 @@ def parsearEtiqueta(label, directorioBase):
     elif label == "/Borradores" or label.lower() == "/draft":
         return "DRAFT"
     else:
-        return l[1:] if l[0] == '/' else l
+        return label[1:] if label[0] == '/' else label
 
 if __name__ == '__main__':
     version ='v1'
