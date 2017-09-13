@@ -79,14 +79,15 @@ def crearEtiqueta(userId, nombre):
         logging.info('An error occurred: %s' % error)
 
 def parsearEtiqueta(label, directorioBase):
+    label = label[1:] if label[0] == '/' else label
     if label == directorioBase:
         return "INBOX"
-    elif label == "/Enviados" or label.lower() == "/sent":
+    elif label == "Enviados" or label.lower() == "sent":
         return "SENT"
-    elif label == "/Borradores" or label.lower() == "/draft":
+    elif label == "Borradores" or label.lower() == "draft":
         return "DRAFT"
     else:
-        return label[1:] if label[0] == '/' else label
+        return label
 
 if __name__ == '__main__':
     version ='v1'
@@ -106,6 +107,7 @@ if __name__ == '__main__':
     (base, dirs, files) = next(os.walk(maildir))
 
     omitir = ['.Sent', '.Enviados', '.Borradores', '.Draft','.Trash', '.Eliminados']
+    omitir.extend['Sent', 'Enviados', 'Borradores', 'Draft','Trash', 'Eliminados']
 
     labelsGoogle = obtenerLabels(username)
     etiquetasGoogle = [l["name"] for l in labelsGoogle]
