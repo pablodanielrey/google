@@ -119,7 +119,8 @@ if __name__ == '__main__':
     logging.info('creando carpetas')
     for d in dirs:
         if patron.match(d) and d not in omitir:
-            l = d.replace(".","/")[1:]
+            l = d.replace(".","/")
+            l = l[1:] if l[0] == '/' else l
             if l not in etiquetasGoogle:
                 e = crearEtiqueta(username, l)
                 etiquetasNuevas.append({'id': e['id'], 'name': e['name']})
