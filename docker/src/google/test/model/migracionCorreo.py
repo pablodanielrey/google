@@ -78,8 +78,8 @@ def crearEtiqueta(userId, nombre):
     except errors.HttpError as err:
         logging.info('An error occurred: %s' % error)
 
-def parsearEtiqueta(label):
-    if label == "Maildir":
+def parsearEtiqueta(label, directorioBase):
+    if label == directorioBase:
         return "INBOX"
     elif label == "/Enviados" or label.lower() == "/sent":
         return "SENT"
@@ -93,6 +93,8 @@ if __name__ == '__main__':
     api = 'gmail'
     username = sys.argv[1]
     maildir = sys.argv[2]
+    directorioBase = maildir.split('/')[-1]
+
 
     logFile = '/var/log/migracion-{}-{}.log'.format(username,str(datetime.datetime.now()))
     logging.basicConfig(filename=logFile, filemode='w', level=logging.DEBUG)
@@ -135,7 +137,7 @@ if __name__ == '__main__':
         if base[-4:] in ['/cur','/new']:
             arr = base.split('/')
             label = arr[-2].replace(".","/")
-            label = parsearEtiqueta(label)
+            label = parsearEtiqueta(label, directorioBase)
 
             if label in ["Trash", "Eliminados"]:
                 continue
