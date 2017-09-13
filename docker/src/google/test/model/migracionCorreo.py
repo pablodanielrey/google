@@ -6,6 +6,8 @@ from email.parser import Parser
 from apiclient import errors
 import os
 import re, sys
+import logging
+import datetime
 
 def crearMensaje(api, version, username, file, labelIds):
     scopes = ['https://www.googleapis.com/auth/gmail.insert','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
@@ -19,7 +21,7 @@ def crearMensaje(api, version, username, file, labelIds):
         try:
             return service.users().messages().insert(userId=username,internalDateSource='dateHeader',body={'raw': urlsafe, 'labelIds': labelIds}).execute()
         except Exception as e:
-            print(e)
+            logging.info(e)
             num_tries += 1
     return None
 
@@ -61,7 +63,7 @@ def obtenerLabels(userId):
         labels = response['labels']
         return labels
     except errors.HttpError as err:
-        print('An error occurred: %s' % error)
+        logging.info('An error occurred: %s' % error)
 
 def crearEtiqueta(userId, nombre):
     scopes = ['https://mail.google.com/',
@@ -71,9 +73,10 @@ def crearEtiqueta(userId, nombre):
     service = GAuthApis.getService('v1', 'gmail', scopes, userId)
     try:
         label = service.users().labels().create(userId=userId, body={'name':nombre}).execute()
+        logging.info('se ha creado la etiqueta: {}'.format(label))
         return label["id"]
     except errors.HttpError as err:
-        print('An error occurred: %s' % error)
+        logging.info('An error occurred: %s' % error)
 
 def parsearEtiqueta(label):
     if label == "Maildir":
@@ -91,6 +94,10 @@ if __name__ == '__main__':
     username = sys.argv[1]
     maildir = sys.argv[2]
 
+    logFile = '/var/log/migracion-{}-{}.log'.format(username,str(datetime.datetime.now()))
+    logging.basicConfig(filename=logFile, filemode='w', level=logging.DEBUG)
+    print('logueando info del proceso sobre : {}'.format(logFile))
+
     patron = re.compile('\..+')
 
 
@@ -107,6 +114,7 @@ if __name__ == '__main__':
         etiquetas[l['name']] = l['id']
 
     # creo las etiquetas en google
+    logging.info('creando carpetas')
     for d in dirs:
         if patron.match(d) and d not in omitir:
             l = d.replace(".","/")[1:]
@@ -114,12 +122,15 @@ if __name__ == '__main__':
                 e = crearEtiqueta(username, l)
                 etiquetasNuevas.append({'id': e['id'], 'name': e['name']})
                 etiquetas[e['name']] = e['id']
-                print(d)
+            else:
+                logging.info('la etiqueta {} ya existe'.format(l))
 
-    print("Etiquetas creadas: {}".format(etiquetasNuevas))
+    logging.info("Etiquetas creadas: {}".format(etiquetasNuevas))
 
     # obtengo los correos a copiar en cada etiqueta
+    logging.info('obteniendo correos a migrar')
     archivos = {}
+    i = 0
     for (base, dirs, files) in os.walk(maildir):
         if base[-4:] in ['/cur','/new']:
             arr = base.split('/')
@@ -133,18 +144,22 @@ if __name__ == '__main__':
                 e = archivos[label]
                 correos = [base + '/' + f for f in files]
                 e["files"].extend(correos)
+                i += 1
             else:
                 correos = [base + '/' + f for f in files]
                 archivos[label] = {'label': label, 'files': correos, 'labelId': etiquetas[label]}
+                i += 1
 
+    logging.info('cantidad de correos a copiar: {}'.format(i))
 
     # copio los correos a google
+    logging.info('copiando correos')
     for label in archivos.keys():
         files = archivos[label]
         for archivo in files["files"]:
-            print("archivo a copiar " + archivo)
+            logging.info("archivo a copiar " + archivo)
             with open(archivo, 'r', encoding="latin-1") as file:
                 labelId = files["labelId"]
-                print("Mail a copiar {} label: {}".format(archivo, labelId))
+                logging.info("Mail a copiar {} label: {}".format(archivo, labelId))
                 crearMensaje(api, version, username, file, [labelId])
-                print("Mail copiado")
+                logging.info("Mail copiado")
