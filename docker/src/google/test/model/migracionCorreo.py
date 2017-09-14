@@ -84,9 +84,9 @@ def parsearEtiqueta(label, directorioBase):
     label = label[1:] if label[0] == '/' else label
     if label == directorioBase:
         return "INBOX"
-    elif label == "Enviados" or label.lower() == "sent":
+    elif label.lower() == "enviados" or label.lower() == "sent":
         return "SENT"
-    elif label == "Borradores" or label.lower() == "draft":
+    elif label.lower() == "borradores" or label.lower() == "draft":
         return "DRAFT"
     else:
         return label
@@ -108,8 +108,8 @@ if __name__ == '__main__':
 
     (base, dirs, files) = next(os.walk(maildir))
 
-    omitir = ['.Sent', '.Enviados', '.Borradores', '.Draft','.Trash', '.Eliminados']
-    omitir.extend(['Sent', 'Enviados', 'Borradores', 'Draft','Trash', 'Eliminados', 'tmp', 'cur', 'new'])
+    omitir = ['.sent', '.enviados', '.borradores', '.draft','.trash', '.eliminados']
+    omitir.extend(['sent', 'enviados', 'borradores', 'draft','trash', 'eliminados', 'tmp', 'cur', 'new'])
 
     labelsGoogle = obtenerLabels(username)
     logging.info('etiquestas de google {}'.format(labelsGoogle))
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     # creo las etiquetas en google
     logging.info('creando carpetas')
     for d in dirs:
-        if d not in omitir:
+        if d.lower() not in omitir:
             l = d.replace(".","/")
             l = l[1:] if l[0] == '/' else l
             if l not in etiquetasGoogle:
@@ -145,11 +145,8 @@ if __name__ == '__main__':
             label = arr[-2].replace(".","/")
             label = parsearEtiqueta(label, directorioBase)
 
-            if label in ["Trash", "Eliminados"]:
+            if label.lower() in ["trash", "eliminados"]:
                 continue
-
-            print('label {}'.format(label))
-            print('keys archivos {}'.format(archivos.keys()))
             if label in archivos:
                 e = archivos[label]
                 correos = [base + '/' + f for f in files]
