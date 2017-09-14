@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
 
     logFile = '/var/log/migracion-{}-{}.log'.format(username,str(datetime.datetime.now()))
-    logging.basicConfig(filename=logFile, filemode='w', level=logging.DEBUG)
+    logging.basicConfig(filename=logFile, filemode='w', level=logging.INFO)
     print('logueando info del proceso sobre : {}'.format(logFile))
 
     patron = re.compile('\..+')
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     (base, dirs, files) = next(os.walk(maildir))
 
     omitir = ['.Sent', '.Enviados', '.Borradores', '.Draft','.Trash', '.Eliminados']
-    omitir.extend['Sent', 'Enviados', 'Borradores', 'Draft','Trash', 'Eliminados']
+    omitir.extend['Sent', 'Enviados', 'Borradores', 'Draft','Trash', 'Eliminados', 'tmp', 'cur', 'new']
 
     labelsGoogle = obtenerLabels(username)
     etiquetasGoogle = [l["name"] for l in labelsGoogle]
