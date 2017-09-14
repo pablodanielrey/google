@@ -151,11 +151,11 @@ if __name__ == '__main__':
                 e = archivos[label]
                 correos = [base + '/' + f for f in files]
                 e["files"].extend(correos)
-                i += 1
+                i += len(files)
             else:
                 correos = [base + '/' + f for f in files]
                 archivos[label] = {'label': label, 'files': correos, 'labelId': etiquetas[label]}
-                i += 1
+                i += len(files)
 
     logging.info('cantidad de correos a copiar: {}'.format(i))
 
