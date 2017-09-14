@@ -74,7 +74,7 @@ def crearEtiqueta(userId, nombre):
     try:
         label = service.users().labels().create(userId=userId, body={'name':nombre}).execute()
         logging.info('se ha creado la etiqueta: {}'.format(label))
-        return label["id"]
+        return label
     except errors.HttpError as err:
         logging.info('An error occurred: %s' % error)
 
@@ -107,9 +107,10 @@ if __name__ == '__main__':
     (base, dirs, files) = next(os.walk(maildir))
 
     omitir = ['.Sent', '.Enviados', '.Borradores', '.Draft','.Trash', '.Eliminados']
-    omitir.extend['Sent', 'Enviados', 'Borradores', 'Draft','Trash', 'Eliminados']
+    omitir.extend(['Sent', 'Enviados', 'Borradores', 'Draft','Trash', 'Eliminados'])
 
     labelsGoogle = obtenerLabels(username)
+    logging.info('etiquestas de google {}'.format(labelsGoogle))
     etiquetasGoogle = [l["name"] for l in labelsGoogle]
     etiquetasNuevas = []
 
@@ -120,7 +121,7 @@ if __name__ == '__main__':
     # creo las etiquetas en google
     logging.info('creando carpetas')
     for d in dirs:
-        if patron.match(d) and d not in omitir:
+        if d not in omitir:
             l = d.replace(".","/")
             l = l[1:] if l[0] == '/' else l
             if l not in etiquetasGoogle:
@@ -145,6 +146,8 @@ if __name__ == '__main__':
             if label in ["Trash", "Eliminados"]:
                 continue
 
+            print('label {}'.format(label))
+            print('keys archivos {}'.format(archivos.keys()))
             if label in archivos:
                 e = archivos[label]
                 correos = [base + '/' + f for f in files]

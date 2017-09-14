@@ -51,7 +51,7 @@ class GAuthApis:
     def getService(cls, version, api, scopes, username=adminGoogle):
         credentials = cls.getCredentials(username, scopes)
         http = credentials.authorize(httplib2.Http())
-        service = discovery.build(api, version, http=http)
+        service = discovery.build(api, version, http=http, cache_discovery=False)
         return service
 
     @classmethod
