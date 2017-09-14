@@ -1,5 +1,7 @@
 from google.model.GoogleAuthApi import GAuthApis
 import sys, os
+from apiclient import errors
+
 
 def obtenerPlatantilla(name, email, replyTo):
     return {
@@ -42,9 +44,21 @@ def crearGrupo(userId, name, email):
     service = GAuthApis.getService('directory_v1', 'admin', SCOPES, userId)
     return service.groups().insert(body={'name':name, 'email':email}).execute()
 
-
+def agregarPropietario(userId, groupKey, owner):
+    SCOPE = ['https://www.googleapis.com/auth/admin.directory.group.member', 'https://www.googleapis.com/auth/admin.directory.group']
+    service = GAuthApis.getService('directory_v1', 'admin', SCOPES, userId)
+    try:
+        result = service.members.insert(groupKey=groupKey, body={'email':owner, 'role': 'OWNER'})
+        print(result)
+        return result
+    except errors.HttpError as err:
+        print('An error occurred: %s' % error)
 
 if __name__ == '__main__':
+    if len(sys.argv) < 5:
+        print("Faltan parametros")
+        exit()
+
     SCOPES = ['https://www.googleapis.com/auth/apps.groups.settings']
     version='v1'
     api='groupssettings'
@@ -53,6 +67,7 @@ if __name__ == '__main__':
     name = sys.argv[1]
     groupEmail = sys.argv[2]
     replyTo = sys.argv[3]
+    owner = sys.argv[4]
 
     service = GAuthApis.getService(version, api, SCOPES, userId)
     try:
@@ -60,6 +75,8 @@ if __name__ == '__main__':
         newGroup = obtenerPlatantilla(name, groupEmail, replyTo)
         results = service.groups().update(groupUniqueId=groupEmail, body=newGroup).execute()
         print(results)
+
+        agregarPropietario(userId, groupEmail, owner)
     except:
         print('Unable to read group: {0}'.format(groupEmail))
         raise
