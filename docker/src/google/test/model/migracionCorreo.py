@@ -65,7 +65,7 @@ def obtenerLabels(userId):
         labels = response['labels']
         return labels
     except errors.HttpError as err:
-        logging.info('An error occurred: %s' % error)
+        logging.info('An error occurred: {}'.format(error))
 
 def crearEtiqueta(userId, nombre):
     scopes = ['https://mail.google.com/',
@@ -78,7 +78,7 @@ def crearEtiqueta(userId, nombre):
         logging.info('se ha creado la etiqueta: {}'.format(label))
         return label
     except errors.HttpError as err:
-        logging.info('An error occurred: %s' % error)
+        logging.info('An error occurred: {}'.format(error))
 
 def parsearEtiqueta(label, directorioBase):
     label = label[1:] if label[0] == '/' else label
