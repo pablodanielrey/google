@@ -64,7 +64,7 @@ def obtenerLabels(userId):
         response = service.users().labels().list(userId=userId).execute()
         labels = response['labels']
         return labels
-    except errors.HttpError as err:
+    except errors.HttpError as error:
         logging.info('An error occurred: {}'.format(error))
 
 def crearEtiqueta(userId, nombre):
@@ -77,7 +77,7 @@ def crearEtiqueta(userId, nombre):
         label = service.users().labels().create(userId=userId, body={'name':nombre}).execute()
         logging.info('se ha creado la etiqueta: {}'.format(label))
         return label
-    except errors.HttpError as err:
+    except errors.HttpError as error:
         logging.info('An error occurred: {}'.format(error))
 
 def parsearEtiqueta(label, directorioBase):
