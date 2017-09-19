@@ -190,8 +190,7 @@ if __name__ == '__main__':
                 continue
 
             logging.info("archivo a copiar " + archivo)
-            continue
             with open(archivo, 'r', encoding="latin-1") as file:
                 labelId = files["labelId"]
                 logging.info("Mail a copiar {} label: {}".format(archivo, labelId))
-                # crearMensaje(api, version, username, file, [labelId], archivo)
+                crearMensaje(api, version, username, file, [labelId], archivo)
