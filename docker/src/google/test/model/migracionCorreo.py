@@ -127,6 +127,7 @@ if __name__ == '__main__':
             l = d.replace(".","/")
             l = l[1:] if l[0] == '/' else l
             if l not in etiquetasGoogle:
+                logging.info('se va a crear la etiqueta: {}'.format(l))
                 e = crearEtiqueta(username, l)
                 etiquetasNuevas.append({'id': e['id'], 'name': e['name']})
                 etiquetas[e['name']] = e['id']
