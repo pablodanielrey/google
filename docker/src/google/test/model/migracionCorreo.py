@@ -108,8 +108,8 @@ if __name__ == '__main__':
 
     (base, dirs, files) = next(os.walk(maildir))
 
-    omitir = ['.sent', '.enviados', '.borradores', '.draft','.trash', '.eliminados']
-    omitir.extend(['sent', 'enviados', 'borradores', 'draft','trash', 'eliminados', 'tmp', 'cur', 'new'])
+    omitir = ['.sent', '.enviados', '.borradores', '.draft','.trash', '.eliminados', '.papelera']
+    omitir.extend(['sent', 'enviados', 'borradores', 'draft','trash', 'eliminados', 'papelera', 'tmp', 'cur', 'new'])
 
     labelsGoogle = obtenerLabels(username)
     logging.info('etiquestas de google {}'.format(labelsGoogle))
@@ -146,7 +146,7 @@ if __name__ == '__main__':
             label = arr[-2].replace(".","/")
             label = parsearEtiqueta(label, directorioBase)
 
-            if label.lower() in ["trash", "eliminados"]:
+            if label.lower() in ["trash", "eliminados", "papelera"]:
                 continue
             if label in archivos:
                 e = archivos[label]
