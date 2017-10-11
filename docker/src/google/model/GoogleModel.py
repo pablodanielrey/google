@@ -16,7 +16,7 @@ from .entities import *
 
 class GoogleModel:
 
-    usuarios_url = os.environ['USERS_REST_URL']
+    usuarios_url = os.environ['USERS_API_URL']
 
     @staticmethod
     def _aplicar_filtros_comunes(q, offset, limit):
