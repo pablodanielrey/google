@@ -19,6 +19,9 @@ COPY supervisor/srsyslog.conf /etc/supervisor/conf.d
 COPY supervisor/srest.conf /etc/supervisor/conf.d
 COPY supervisor/sflask.conf /etc/supervisor/conf.d
 #COPY supervisor/swamp.conf /etc/supervisor/conf.d
+COPY .pypirc /root/
+COPY pip.conf /etc/
+
 
 #COPY src /src
 WORKDIR /src
