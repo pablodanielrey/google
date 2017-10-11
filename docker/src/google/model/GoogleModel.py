@@ -16,7 +16,7 @@ from .entities import *
 
 class GoogleModel:
 
-    usuarios_url = os.environ['USERS_API_URL']
+    sileg_url = os.environ['SILEG_API_URL']
 
     @staticmethod
     def _aplicar_filtros_comunes(q, offset, limit):
@@ -31,7 +31,7 @@ class GoogleModel:
         session = Session()
         try:
             if uid:
-                usuarios.append(requests.get(cls.usuarios_url + '/usuarios/'+ uid +'?c=True').json())
+                usuarios.append(requests.get(cls.sileg_url + '/usuarios/'+ uid +'?c=True').json())
             else:
                 result = session.query(func.max(Sincronizacion.actualizado)).first()
                 result = result if result[0] else  session.query(func.max(Sincronizacion.creado)).first()
@@ -40,8 +40,8 @@ class GoogleModel:
                 if fecha:
                     # filter = filter + '&f=' + str(fecha) descomentar cuando se pase a produccion
                     filter = filter + '&f=2017-08-02%2008:08:46.573983' #comentar cuando se pase a produccion
-                usuarios = requests.get(cls.usuarios_url + filter + '&limit=50').json() #comentar cuando se pase a produccion
-                # usuarios = requests.get(cls.usuarios_url + filter).json() descomentar cuando se pase a produccion
+                usuarios = requests.get(cls.sileg_url + filter + '&limit=50').json() #comentar cuando se pase a produccion
+                # usuarios = requests.get(cls.sileg_url + filter).json() descomentar cuando se pase a produccion
 
             actualizados = 0
             creados = 0
@@ -149,7 +149,7 @@ class GoogleModel:
 
             for s in q:
                 userGoogle = s.dni + '@econo.unlp.edu.ar'
-                user = requests.get(cls.usuarios_url + '/usuarios/'+ s.id +'?c=True').json()
+                user = requests.get(cls.sileg_url + '/usuarios/'+ s.id +'?c=True').json()
                 fullName = user["nombre"] + " " + user["apellido"]
 
 
@@ -238,7 +238,7 @@ class GoogleModel:
                 return False
 
             userGoogle = s.dni + "@econo.unlp.edu.ar"
-            user = requests.get(cls.usuarios_url + '/usuarios/'+ s.id +'?c=True').json()
+            user = requests.get(cls.sileg_url + '/usuarios/'+ s.id +'?c=True').json()
             fullName = user["nombre"] + " " + user["apellido"]
             for e in s.emails.split(","):
                 cls.agregarAliasEnviarComo(fullName, e, userGoogle)
