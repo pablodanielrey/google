@@ -34,7 +34,8 @@ setup(name='google',
                             'redis',
                             'Flask',
                             'flask_jsontools',
-                            'SQLAlchemy'],
+                            'SQLAlchemy',
+                            'microservices_common'],
           entry_points={
             'console_scripts': [
                 'wamp=google.api.wamp.main:main',
