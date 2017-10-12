@@ -49,6 +49,7 @@ class GoogleModel:
                 usuarios = [u['usuario'] for u in susuarios]
 
 
+            ignorados = 0
             actualizados = 0
             creados = 0
             for u in usuarios:
@@ -60,7 +61,7 @@ class GoogleModel:
                     clave = u['claves'][0] if len(u['claves']) > 0 else None
 
                 if clave is None or len(emails) <= 0:
-                    print("No tiene correos o clave")
+                    ignorados = ignorados + 1
                     continue
 
                 emails = ",".join([x for x in sorted(emails)])
@@ -96,7 +97,7 @@ class GoogleModel:
 
                 session.commit()
 
-            return {'actualizados':actualizados, 'creados':creados}
+            return {'actualizados':actualizados, 'creados':creados, 'ignorados':ignorados}
         finally:
             session.close()
 
