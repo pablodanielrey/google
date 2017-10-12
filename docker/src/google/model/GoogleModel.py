@@ -51,7 +51,10 @@ class GoogleModel:
                 emails = [m['email'] for m in u['mails'] if 'econo.unlp.edu.ar' in m['email'] and m['confirmado']]
                 sinc = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
 
-                clave = u['claves'][0] if len(u['claves']) > 0 else None
+                clave = None
+                if 'claves' not in u:
+                    clave = u['claves'][0] if len(u['claves']) > 0 else None
+
                 if clave is None or len(emails) <= 0:
                     print("No tiene correos o clave")
                     continue
