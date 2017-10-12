@@ -31,17 +31,19 @@ class GoogleModel:
         session = Session()
         try:
             if uid:
-                datos = requests.get(cls.sileg_url + '/usuarios/'+ uid +'?c=True').json()
+                params = {'c':True}
+                datos = requests.get(cls.sileg_url + '/usuarios/'+ uid, params=params).json()
                 if 'usuario' in datos:
                     usuarios.append(datos['usuario'])
             else:
                 result = session.query(func.max(Sincronizacion.actualizado)).first()
                 result = result if result[0] else session.query(func.max(Sincronizacion.creado)).first()
                 fecha = result[0]
-                filter = '/usuarios/?c=True'
+                q = '{}{}'.format(cls.sileg_url, '/usuarios/')
+                params = {'c':True}
                 if fecha:
-                    filter = filter + '&f={}'.format(fecha)
-                susuarios = requests.get(cls.sileg_url + filter).json()
+                    params['f'] = fecha
+                susuarios = requests.get(q, params=params).json()
                 usuarios = [u['usuario'] for u in susuarios]
 
 
