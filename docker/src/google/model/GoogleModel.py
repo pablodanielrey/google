@@ -36,15 +36,14 @@ class GoogleModel:
                     usuarios.append(datos['usuario'])
             else:
                 result = session.query(func.max(Sincronizacion.actualizado)).first()
-                result = result if result[0] else  session.query(func.max(Sincronizacion.creado)).first()
+                result = result if result[0] else session.query(func.max(Sincronizacion.creado)).first()
                 fecha = result[0]
                 filter = '/usuarios/?c=True'
                 if fecha:
-                    # filter = filter + '&f=' + str(fecha) descomentar cuando se pase a produccion
-                    filter = filter + '&f=2017-08-02%2008:08:46.573983' #comentar cuando se pase a produccion
-                susuarios = requests.get(cls.sileg_url + filter + '&limit=50').json() #comentar cuando se pase a produccion
+                    filter = filter + '&f={}'.format(fecha)
+                susuarios = requests.get(cls.sileg_url + filter).json()
                 usuarios = [u['usuario'] for u in susuarios]
-                # usuarios = requests.get(cls.sileg_url + filter).json() descomentar cuando se pase a produccion
+
 
             actualizados = 0
             creados = 0
