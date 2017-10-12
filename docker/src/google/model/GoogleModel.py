@@ -42,7 +42,8 @@ class GoogleModel:
                 if fecha:
                     # filter = filter + '&f=' + str(fecha) descomentar cuando se pase a produccion
                     filter = filter + '&f=2017-08-02%2008:08:46.573983' #comentar cuando se pase a produccion
-                usuarios = requests.get(cls.sileg_url + filter + '&limit=50').json() #comentar cuando se pase a produccion
+                susuarios = requests.get(cls.sileg_url + filter + '&limit=50').json() #comentar cuando se pase a produccion
+                usuarios = [u['usuario'] for u in susuarios]
                 # usuarios = requests.get(cls.sileg_url + filter).json() descomentar cuando se pase a produccion
 
             actualizados = 0
