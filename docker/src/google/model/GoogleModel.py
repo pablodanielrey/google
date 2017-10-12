@@ -48,7 +48,7 @@ class GoogleModel:
             actualizados = 0
             creados = 0
             for u in usuarios:
-                emails = [m['email'] for m in u['mails'] if 'econo.unlp.edu.ar' in m['email'] and m['confirmado']]
+                emails = [m['email'] for m in u['mails'] if 'econo.unlp.edu.ar' in m['email'] and m['confirmado']] if 'mails' in u else []
                 sinc = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
 
                 clave = None
