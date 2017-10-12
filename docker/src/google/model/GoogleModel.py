@@ -43,6 +43,8 @@ class GoogleModel:
                 params = {'c':True}
                 if fecha:
                     params['f'] = fecha
+                else:
+                    params['f'] = datetime.datetime.now() - datetime.timedelta(days=365)
                 susuarios = requests.get(q, params=params).json()
                 usuarios = [u['usuario'] for u in susuarios]
 
