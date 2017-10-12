@@ -32,9 +32,11 @@ class GoogleModel:
         try:
             if uid:
                 params = {'c':True}
-                datos = requests.get(cls.sileg_url + '/usuarios/'+ uid, params=params).json()
-                if 'usuario' in datos:
-                    usuarios.append(datos['usuario'])
+                resp = requests.get(cls.sileg_url + '/usuarios/'+ uid, params=params)
+                if resp.status_code == 200:
+                    datos = resp.json()
+                    if 'usuario' in datos:
+                        usuarios.append(datos['usuario'])
             else:
                 result = session.query(func.max(Sincronizacion.actualizado)).first()
                 result = result if result[0] else session.query(func.max(Sincronizacion.creado)).first()
@@ -45,9 +47,10 @@ class GoogleModel:
                     params['f'] = fecha
                 else:
                     params['f'] = datetime.datetime.now() - datetime.timedelta(days=9000)
-                susuarios = requests.get(q, params=params).json()
-                usuarios = [u['usuario'] for u in susuarios]
-
+                resp = requests.get(q, params=params)
+                if resp.status_code == 200:
+                    susuarios = resp.json()
+                    usuarios = [u['usuario'] for u in susuarios]
 
             ignorados = 0
             actualizados = 0
