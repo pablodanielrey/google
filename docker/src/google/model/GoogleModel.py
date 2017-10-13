@@ -60,7 +60,7 @@ class GoogleModel:
                 sinc = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
 
                 clave = None
-                if 'claves' not in u:
+                if 'claves' in u:
                     clave = u['claves'][0] if len(u['claves']) > 0 else None
 
                 if clave is None or len(emails) <= 0:
