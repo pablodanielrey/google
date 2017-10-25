@@ -120,6 +120,10 @@ class GoogleModel:
             service = GAuthApis.getServiceAdmin()
             fecha = datetime.datetime.now()
             for s in q:
+                if s.error >= 5:
+                    ''' no intento sincronizar los que continuen con errores '''
+                    continue
+
                 userGoogle = s.dni + '@econo.unlp.edu.ar'
                 try:
                     #update user
@@ -135,7 +139,15 @@ class GoogleModel:
                     sync.append(s.dni)
 
                 except errors.HttpError as err:
-                    print("el usuario no existe")
+                    logging.exception(err)
+
+                    ds = cls._crearLog(err)
+                    session.add(ds)
+                    session.commit()
+
+                    s.error = s.error + 1
+                    session.commit()
+
                     noSync.append(s.dni)
 
             return {'sincronizados':sync, 'noSincronizados':noSync}
