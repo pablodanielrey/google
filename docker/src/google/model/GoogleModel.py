@@ -165,9 +165,12 @@ class GoogleModel:
 
             for s in q:
                 userGoogle = s.dni + '@econo.unlp.edu.ar'
-                user = requests.get(cls.sileg_url + '/usuarios/'+ s.id +'?c=True').json()
-                fullName = user["nombre"] + " " + user["apellido"]
+                r = requests.get(cls.sileg_url + '/usuarios/'+ s.id +'?c=True')
+                if not r.ok:
+                    continue
 
+                user = r.json()['usuario']
+                fullName = user["nombre"] + " " + user["apellido"]
 
                 try:
                     # datos a actualizar
@@ -196,6 +199,7 @@ class GoogleModel:
                     session.commit()
 
                     actualizados.append(datos)
+
                 except errors.HttpError as err:
                     # crear usuario
                     datos = {}
@@ -208,13 +212,10 @@ class GoogleModel:
                     datos["password"] = s.clave
                     datos["externalIds"] = [{'type': 'custom', 'value': s.id}]
 
-
                     r = service.users().insert(body=datos).execute()
-
 
                     ds = cls._crearLog(r)
                     session.add(ds)
-
 
                     # crear alias
                     for e in s.emails.split(","):
@@ -223,11 +224,8 @@ class GoogleModel:
                         ds = cls._crearLog(r)
                         session.add(ds)
 
-
-
                     s.usuario_creado = fecha
                     s.usuario_actualizado = fecha
-
 
                     '''
                     # agregar los correos a enviar como
@@ -236,12 +234,12 @@ class GoogleModel:
                     for e in s.emails.split(","):
                         cls.agregarAliasEnviarComo(fullName, e, userGoogle)
                     '''
-
                     session.commit()
 
                     creados.append(datos)
 
             return {'creados':creados, 'actualizados':actualizados}
+
         finally:
             session.close()
 
