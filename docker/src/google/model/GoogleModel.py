@@ -56,8 +56,9 @@ class GoogleModel:
             actualizados = 0
             creados = 0
             for u in usuarios:
-                emails = [m['email'] for m in u['mails'] if 'econo.unlp.edu.ar' in m['email'] and m['confirmado']] if 'mails' in u else []
-                sinc = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
+                emails = []
+                if 'mails' in u:
+                    emails = [m['email'] for m in u['mails'] if 'econo.unlp.edu.ar' in m['email'] and 'fecha_confirmado' in m and m['fecha_confirmado'] != None]
 
                 clave = None
                 if 'claves' in u:
@@ -70,6 +71,7 @@ class GoogleModel:
                 emails = ",".join([x for x in sorted(emails)])
                 clave_actualizada = parse(clave['actualizado']) if clave['actualizado'] and clave['actualizado'] != 'null' else parse(clave['creado'])
 
+                sinc = session.query(Sincronizacion).filter(Sincronizacion.id == u['id']).first()
                 if sinc:
                     ''' actualizo los datos que fueron modificados '''
                     modificado = False
@@ -83,7 +85,8 @@ class GoogleModel:
                         sinc.emails = emails
                         modificado = True
 
-                    actualizados = actualizados + 1 if modificado else actualizados
+                    if modificado:
+                        actualizados = actualizados + 1
 
                 else:
                     ''' crear usuario '''
