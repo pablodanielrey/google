@@ -166,6 +166,11 @@ class GoogleModel:
             fecha = datetime.datetime.now()
 
             for s in q:
+
+                if s.error > 5:
+                    ''' ignoro los registros que tengan errores '''
+                    continue
+
                 userGoogle = s.dni + '@econo.unlp.edu.ar'
                 r = requests.get(cls.sileg_url + '/usuarios/'+ s.id +'?c=True')
                 if not r.ok:
@@ -205,7 +210,13 @@ class GoogleModel:
                     actualizados.append(datos)
 
                 except errors.HttpError as err:
+                    ds = cls._crearLog(err)
+                    session.add(ds)
+                    session.commit()
                     logging.exception(err)
+
+                    s.error = s.error + 1
+                    session.commit()
 
                     try:
                         # crear usuario
@@ -244,9 +255,16 @@ class GoogleModel:
                         session.commit()
 
                         creados.append(datos)
-                        
+
                     except Exception as err2:
+                        ds = cls._crearLog(err2)
+                        session.add(ds)
+                        session.commit()
                         logging.exception(err2)
+
+                        s.error = s.error + 1
+                        session.commit()
+
 
             return {'creados':creados, 'actualizados':actualizados}
 

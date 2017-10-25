@@ -26,5 +26,6 @@ class Sincronizacion(Base):
     emails = Column(String)
     usuario_creado = Column(DateTime)
     usuario_actualizado = Column(DateTime)
+    error = Column(Integer, default=0)
 
     #forzar = Column(Boolean,False)
