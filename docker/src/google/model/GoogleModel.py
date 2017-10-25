@@ -10,6 +10,8 @@ import datetime
 import hashlib
 from apiclient import errors
 import time
+import logging
+logging.getLogger().setLevel(logging.DEBUG)
 
 from . import Session
 from .entities import *
@@ -203,42 +205,48 @@ class GoogleModel:
                     actualizados.append(datos)
 
                 except errors.HttpError as err:
-                    # crear usuario
-                    datos = {}
-                    datos["aliases"] = s.emails.split(",")
-                    datos["changePasswordAtNextLogin"] = False
-                    datos["primaryEmail"] = userGoogle
-                    datos["emails"] = [{'address': userGoogle, 'primary': True, 'type': 'work'}]
+                    logging.exception(err)
 
-                    datos["name"] = {"givenName": user["nombre"], "fullName": fullName, "familyName": user["apellido"]}
-                    datos["password"] = s.clave
-                    datos["externalIds"] = [{'type': 'custom', 'value': s.id}]
+                    try:
+                        # crear usuario
+                        datos = {}
+                        datos["aliases"] = s.emails.split(",")
+                        datos["changePasswordAtNextLogin"] = False
+                        datos["primaryEmail"] = userGoogle
+                        datos["emails"] = [{'address': userGoogle, 'primary': True, 'type': 'work'}]
 
-                    r = service.users().insert(body=datos).execute()
+                        datos["name"] = {"givenName": user["nombre"], "fullName": fullName, "familyName": user["apellido"]}
+                        datos["password"] = s.clave
+                        datos["externalIds"] = [{'type': 'custom', 'value': s.id}]
 
-                    ds = cls._crearLog(r)
-                    session.add(ds)
+                        r = service.users().insert(body=datos).execute()
 
-                    # crear alias
-                    for e in s.emails.split(","):
-                        print("Correo a agregar enviar como:{}".format(e))
-                        r = service.users().aliases().insert(userKey=userGoogle,body={"alias":e}).execute()
                         ds = cls._crearLog(r)
                         session.add(ds)
 
-                    s.usuario_creado = fecha
-                    s.usuario_actualizado = fecha
+                        # crear alias
+                        for e in s.emails.split(","):
+                            print("Correo a agregar enviar como:{}".format(e))
+                            r = service.users().aliases().insert(userKey=userGoogle,body={"alias":e}).execute()
+                            ds = cls._crearLog(r)
+                            session.add(ds)
 
-                    '''
-                    # agregar los correos a enviar como
-                    print("Esperar 2 segundos para que se cree el usuario")
-                    time.sleep(2)
-                    for e in s.emails.split(","):
-                        cls.agregarAliasEnviarComo(fullName, e, userGoogle)
-                    '''
-                    session.commit()
+                        s.usuario_creado = fecha
+                        s.usuario_actualizado = fecha
 
-                    creados.append(datos)
+                        '''
+                        # agregar los correos a enviar como
+                        print("Esperar 2 segundos para que se cree el usuario")
+                        time.sleep(2)
+                        for e in s.emails.split(","):
+                            cls.agregarAliasEnviarComo(fullName, e, userGoogle)
+                        '''
+                        session.commit()
+
+                        creados.append(datos)
+                        
+                    except Exception as err2:
+                        logging.exception(err2)
 
             return {'creados':creados, 'actualizados':actualizados}
 
