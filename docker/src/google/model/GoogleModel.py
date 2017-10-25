@@ -46,7 +46,7 @@ class GoogleModel:
                 q = '{}{}'.format(cls.sileg_url, '/usuarios/')
                 params = {'c':True}
                 if fecha:
-                    params['f'] = fecha
+                    params['f'] = fecha - datetime.timedelta(hours=24)
                 else:
                     params['f'] = datetime.datetime.now() - datetime.timedelta(days=9000)
                 resp = requests.get(q, params=params)
