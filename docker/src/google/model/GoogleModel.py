@@ -181,6 +181,7 @@ class GoogleModel:
                     r = service.users().update(userKey=userGoogle,body=datos).execute()
                     ds = cls._crearLog(r)
                     session.add(ds)
+                    session.commit()
 
                     # actualizar alias
                     r = service.users().aliases().list(userKey=userGoogle).execute()
@@ -190,6 +191,7 @@ class GoogleModel:
                             r = service.users().aliases().insert(userKey=userGoogle,body={"alias":e}).execute()
                             ds = cls._crearLog(r)
                             session.add(ds)
+                            session.commit()
 
                     s.usuario_actualizado = fecha
                     s.actualizado = fecha
