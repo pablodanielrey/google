@@ -195,7 +195,7 @@ class GoogleModel:
                     # datos a actualizar
                     datos = {}
 
-                    datos["name"] = {"familyName": user["nombre"], "givenName": user["apellido"], "fullName": fullName}
+                    datos["name"] = {"familyName": user["apellido"], "givenName": user["apellido"], "fullName": fullName}
 
                     r = service.users().update(userKey=userGoogle,body=datos).execute()
                     ds = cls._crearLog(r)
