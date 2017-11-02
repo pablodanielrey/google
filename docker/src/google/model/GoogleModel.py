@@ -64,6 +64,8 @@ class GoogleModel:
                     #CAMBIAR!!!!!! TODO
                     # en vez de lo de arriba ahora necesario para los sistemas viejos que usan el booleano en vez de la fecha de confirmado
                     for m in u['mails']:
+                        if 'eliminado' in m and m['eliminado'] != None:
+                            continue
                         if 'econo.unlp.edu.ar' in m['email']:
                             if 'fecha_confirmado' in m and m['fecha_confirmado'] != None:
                                 emails.append(m['email'])
