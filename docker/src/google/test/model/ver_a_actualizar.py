@@ -22,6 +22,9 @@ from google.model.entities import *
 from pprint import pprint
 
 if __name__ == '__main__':
+
+    session = Session()
+
     sileg_url = os.environ['SILEG_API_URL']
     result = session.query(func.max(Sincronizacion.actualizado)).first()
     result = result if result[0] else session.query(func.max(Sincronizacion.creado)).first()
