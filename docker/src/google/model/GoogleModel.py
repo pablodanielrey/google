@@ -54,7 +54,7 @@ class GoogleModel:
                     susuarios = resp.json()
                     usuarios = [u['usuario'] for u in susuarios]
 
-            ignorados = 0
+            ignorados = []
             actualizados = 0
             creados = 0
             for u in usuarios:
@@ -66,8 +66,12 @@ class GoogleModel:
                 if 'claves' in u:
                     clave = u['claves'][0] if len(u['claves']) > 0 else None
 
-                if clave is None or len(emails) <= 0:
-                    ignorados = ignorados + 1
+                if clave is None:
+                    ignorados.append('{} - clave nula'.format(u['dni']))
+                    continue
+
+                if len(emails) <= 0:
+                    ignorados.append('{} - sin mails'.format(u['dni']))
                     continue
 
                 emails = ",".join([x for x in sorted(emails)])
