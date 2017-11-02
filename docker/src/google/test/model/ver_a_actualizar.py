@@ -7,6 +7,17 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import or_, func, and_
 from sqlalchemy.orm import joinedload
 
+import datetime
+import os
+import uuid
+import requests
+from dateutil.parser import parse
+import datetime
+import hashlib
+from apiclient import errors
+import time
+import logging
+
 from model_utils import Base
 
 engine = create_engine('postgresql://{}:{}@{}:5432/{}'.format(
@@ -32,7 +43,7 @@ if __name__ == '__main__':
 
     logging.info('fecha de la ultima actualizacion : {}'.format(fecha))
 
-    q = '{}{}'.format(cls.sileg_url, '/usuarios/')
+    q = '{}{}'.format(sileg_url, '/usuarios/')
     params = {'c':True}
     if fecha:
         params['f'] = fecha - datetime.timedelta(hours=24)
