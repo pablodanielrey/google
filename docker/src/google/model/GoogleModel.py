@@ -55,8 +55,8 @@ class GoogleModel:
                     usuarios = [u['usuario'] for u in susuarios]
 
             ignorados = []
-            actualizados = 0
-            creados = 0
+            actualizados = []
+            creados = []
             for u in usuarios:
                 emails = []
                 if 'mails' in u:
@@ -96,14 +96,11 @@ class GoogleModel:
                         sinc.clave = clave['clave']
                         sinc.clave_actualizada = clave_actualizada
                         sinc.clave_id = clave['id']
-                        modificado = True
+                        actualizados.append('{} - clave'.format(u['dni']))
 
                     if emails != sinc.emails:
                         sinc.emails = emails
-                        modificado = True
-
-                    if modificado:
-                        actualizados = actualizados + 1
+                        actualizados.append('{} - email'.format(u['dni']))
 
                 else:
                     ''' crear usuario '''
@@ -116,11 +113,11 @@ class GoogleModel:
                         emails=emails
                     )
                     session.add(s)
-                    creados = creados + 1
+                    creados.append(u['dni'])
 
                 session.commit()
 
-            return {'actualizados':actualizados, 'creados':creados, 'ignorados':ignorados}
+            return {'analizados':[u['dni'] for u in usuarios], 'actualizados':actualizados, 'creados':creados, 'ignorados':ignorados}
         finally:
             session.close()
 
