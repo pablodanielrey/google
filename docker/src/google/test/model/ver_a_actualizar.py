@@ -18,7 +18,7 @@ engine = create_engine('postgresql://{}:{}@{}:5432/{}'.format(
 Session = sessionmaker(bind=engine)
 
 
-import google.model.entities.*
+from google.model.entities import *
 from pprint import pprint
 
 if __name__ == '__main__':
