@@ -40,7 +40,7 @@ def options(uid=None):
 @jsonapi
 def googleUsuario(uid):
     GoogleModel.actualizarUsuarios(uid)
-    GoogleModel.sincronizar()
+    GoogleModel.sincronizarUsuarios()
     GoogleModel.sincronizarClaves()
 
 # actualiza las bases de usuarios con la interna del sistema
