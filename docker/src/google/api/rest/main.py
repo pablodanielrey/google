@@ -15,6 +15,7 @@ register_encoder(app)
 @app.route('/google/api/v1.0/sincronizar_claves/', methods=['OPTIONS'])
 @app.route('/google/api/v1.0/sincronizar_usuarios/', methods=['OPTIONS'])
 @app.route('/google/api/v1.0/enviar_como/<uid>', methods=['OPTIONS'])
+@app.route('/google/api/v1.0/google_usuario/<uid>', methods=['OPTIONS'])
 def options(uid=None):
     '''
         para autorizar el CORS
@@ -34,6 +35,13 @@ def options(uid=None):
     return r
 
 
+# actualiza las bases de usuarios con la interna del sistema, dispara toda la sincronizacion
+@app.route('/google/api/v1.0/google_usuario/<uid>', methods=['GET'])
+@jsonapi
+def googleUsuario(uid):
+    GoogleModel.actualizarUsuarios(uid)
+    GoogleModel.sincronizar()
+    GoogleModel.sincronizarClaves()
 
 # actualiza las bases de usuarios con la interna del sistema
 @app.route('/google/api/v1.0/actualizar_usuarios/', methods=['GET'], defaults={'uid':None})
