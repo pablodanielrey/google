@@ -146,7 +146,7 @@ def crearEtiqueta(service, userId, nombre):
         logging.info('An error occurred: {}'.format(err))
 
 
-def obtenerServicio():
+def obtenerServicio(userId):
     scopes = ['https://mail.google.com/',
               'https://www.googleapis.com/auth/gmail.insert',
               'https://www.googleapis.com/auth/gmail.modify',
@@ -196,7 +196,7 @@ if __name__ == '__main__':
     logging.basicConfig(filename=logFile, filemode='w', level=logging.INFO)
     print('logueando info del proceso sobre : {}'.format(logFile))
 
-    service = obtenerServicio()
+    service = obtenerServicio(username)
 
     patron = re.compile('\..+')
 
