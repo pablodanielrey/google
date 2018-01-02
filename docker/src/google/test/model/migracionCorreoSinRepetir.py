@@ -1,4 +1,4 @@
-from google.model.GoogleAuthApi import GAuthApis
+from .GoogleAuthApi import GAuthApis
 import base64
 import email
 from email.mime.text import MIMEText
