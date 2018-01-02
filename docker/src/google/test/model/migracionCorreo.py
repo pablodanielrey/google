@@ -123,7 +123,7 @@ if __name__ == '__main__':
     # creo las etiquetas en google
     logging.info('creando carpetas')
     for d in dirs:
-        if d.lower() not in omitir:
+        if d.lower() not in omitir:            
             l = d.replace(".","/")
             l = l[1:] if l[0] == '/' else l
             if l not in etiquetasGoogle:

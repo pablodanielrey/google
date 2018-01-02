@@ -8,6 +8,7 @@ import os
 import re, sys
 import logging
 import datetime
+import time
 
 def crearMensaje(api, version, username, file, labelIds, fileName):
     scopes = ['https://www.googleapis.com/auth/gmail.insert','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
@@ -22,9 +23,10 @@ def crearMensaje(api, version, username, file, labelIds, fileName):
             msg = service.users().messages().insert(userId=username,internalDateSource='dateHeader',body={'raw': urlsafe, 'labelIds': labelIds}).execute()
             logging.info("Mail copiado:{}".format(fileName))
             return msg
-        except Exception as e:
-            logging.info(e)
+        except Exception as e:          
+            logging.info(e)            
             num_tries += 1
+            time.sleep(num_tries * 60) 
     return None
 
 def obtenerCorreos(api, version, username):
@@ -65,7 +67,7 @@ def obtenerLabels(userId):
         labels = response['labels']
         return labels
     except errors.HttpError as err:
-        logging.info('An error occurred: {}'.format(error))
+        logging.info('An error occurred: {}'.format(err))
 
 def crearEtiqueta(userId, nombre):
     scopes = ['https://mail.google.com/',
@@ -78,7 +80,7 @@ def crearEtiqueta(userId, nombre):
         logging.info('se ha creado la etiqueta: {}'.format(label))
         return label
     except errors.HttpError as err:
-        logging.info('An error occurred: {}'.format(error))
+        logging.info('An error occurred: {}'.format(err))
 
 def parsearEtiqueta(label, directorioBase):
     label = label[1:] if label[0] == '/' else label
@@ -142,6 +144,7 @@ if __name__ == '__main__':
         if d.lower() not in omitir:
             l = d.replace(".","/")
             l = l[1:] if l[0] == '/' else l
+            logging.info("Directorio:" + d)
             if l not in etiquetasGoogle:
                 e = crearEtiqueta(username, l)
                 etiquetasNuevas.append({'id': e['id'], 'name': e['name']})
