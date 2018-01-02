@@ -1,4 +1,4 @@
-from .GoogleAuthApi import GAuthApis
+
 import base64
 import email
 from email.mime.text import MIMEText
@@ -9,6 +9,69 @@ import re, sys
 import logging
 import datetime
 import time
+
+
+import os
+
+from apiclient import discovery, errors
+from oauth2client import client
+from oauth2client import tools
+from oauth2client.file import Storage
+from oauth2client.service_account import ServiceAccountCredentials
+import httplib2
+
+class GAuthApis:
+
+    adminGoogle = os.environ['ADMIN_USER_GOOGLE']
+
+    SCOPES = 'https://www.googleapis.com/auth/admin.directory.user'
+
+    SCOPESGMAIL = [
+        'https://mail.google.com/',
+        'https://www.googleapis.com/auth/gmail.settings.sharing'
+    ]
+
+    """
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
+              'https://www.googleapis.com/auth/drive']
+    """
+
+    @classmethod
+    def getCredentials(cls, username, SCOPES=SCOPES):
+        ''' genera las credenciales delegadas al usuario username '''
+        home_dir = os.path.expanduser('~')
+        credential_dir = os.path.join(home_dir, '.credentials')
+        if not os.path.exists(credential_dir):
+            os.makedirs(credential_dir)
+        credential_path = os.path.join(credential_dir,'credentials.json')
+
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(credential_path, SCOPES)
+
+        ''' uso una cuenta de admin del dominio para acceder a todas las apis '''
+        admin_credentials = credentials.create_delegated(username)
+
+        return admin_credentials
+
+    @classmethod
+    def getService(cls, version, api, scopes, username=adminGoogle):
+        credentials = cls.getCredentials(username, scopes)
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build(api, version, http=http, cache_discovery=False)
+        return service
+
+    @classmethod
+    def getServiceAdmin(cls, username=adminGoogle, version='directory_v1'):
+        api='admin'
+        return cls.getService(version, api, cls.SCOPES, username)
+
+
+    @classmethod
+    def getServiceGmail(cls, username=adminGoogle, version='v1'):
+        api='gmail'
+        return cls.getService(version, api, cls.SCOPESGMAIL, username)
+
+
+
 
 def crearMensaje(service, api, version, username, file, labelIds, fileName):
     #scopes = ['https://www.googleapis.com/auth/gmail.insert','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
