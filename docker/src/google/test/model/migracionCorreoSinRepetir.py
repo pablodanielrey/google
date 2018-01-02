@@ -10,9 +10,9 @@ import logging
 import datetime
 import time
 
-def crearMensaje(api, version, username, file, labelIds, fileName):
-    scopes = ['https://www.googleapis.com/auth/gmail.insert','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
-    service = GAuthApis.getService(version, api, scopes, username)
+def crearMensaje(service, api, version, username, file, labelIds, fileName):
+    #scopes = ['https://www.googleapis.com/auth/gmail.insert','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
+    #service = GAuthApis.getService(version, api, scopes, username)
 
     headers = Parser().parse(file)
     urlsafe = base64.urlsafe_b64encode(headers.as_string().encode()).decode()
@@ -23,15 +23,15 @@ def crearMensaje(api, version, username, file, labelIds, fileName):
             msg = service.users().messages().insert(userId=username,internalDateSource='dateHeader',body={'raw': urlsafe, 'labelIds': labelIds}).execute()
             logging.info("Mail copiado:{}".format(fileName))
             return msg
-        except Exception as e:          
-            logging.info(e)            
+        except Exception as e:
+            logging.exception(e)
             num_tries += 1
-            time.sleep(num_tries * 60) 
+            time.sleep(num_tries * 60)
     return None
 
-def obtenerCorreos(api, version, username):
-    scopes = ['https://www.googleapis.com/auth/gmail.readonly','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
-    service = GAuthApis.getService(version, api, scopes, username)
+def obtenerCorreos(service, api, version, username):
+    #scopes = ['https://www.googleapis.com/auth/gmail.readonly','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
+    #service = GAuthApis.getService(version, api, scopes, username)
 
     respuesta = service.users().messages().list(userId=username).execute()
     ids = []
@@ -46,22 +46,22 @@ def obtenerCorreos(api, version, username):
 
     return ids
 
-def obtenerCorreo(api, version, username, mid):
-    scopes = ['https://www.googleapis.com/auth/gmail.readonly','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
-    service = GAuthApis.getService(version, api, scopes, username)
+def obtenerCorreo(service, api, version, username, mid):
+    #scopes = ['https://www.googleapis.com/auth/gmail.readonly','https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/']
+    #service = GAuthApis.getService(version, api, scopes, username)
 
     correo  = service.users().messages().get(userId=username, id= mid).execute()
 
     return correo
 
-def obtenerLabels(userId):
-    scopes = ['https://mail.google.com/',
-              'https://www.googleapis.com/auth/gmail.modify',
-              'https://www.googleapis.com/auth/gmail.readonly',
-              'https://www.googleapis.com/auth/gmail.labels',
-              'https://www.googleapis.com/auth/gmail.metadata']
+def obtenerLabels(service, userId):
+    #scopes = ['https://mail.google.com/',
+    #          'https://www.googleapis.com/auth/gmail.modify',
+    #          'https://www.googleapis.com/auth/gmail.readonly',
+    #          'https://www.googleapis.com/auth/gmail.labels',
+    #          'https://www.googleapis.com/auth/gmail.metadata']
 
-    service = GAuthApis.getService('v1', 'gmail', scopes, userId)
+    #service = GAuthApis.getService('v1', 'gmail', scopes, userId)
     try:
         response = service.users().labels().list(userId=userId).execute()
         labels = response['labels']
@@ -69,18 +69,30 @@ def obtenerLabels(userId):
     except errors.HttpError as err:
         logging.info('An error occurred: {}'.format(err))
 
-def crearEtiqueta(userId, nombre):
-    scopes = ['https://mail.google.com/',
-              'https://www.googleapis.com/auth/gmail.modify',
-              'https://www.googleapis.com/auth/gmail.labels']
+def crearEtiqueta(service, userId, nombre):
+    #scopes = ['https://mail.google.com/',
+    #          'https://www.googleapis.com/auth/gmail.modify',
+    #          'https://www.googleapis.com/auth/gmail.labels']
 
-    service = GAuthApis.getService('v1', 'gmail', scopes, userId)
+    #service = GAuthApis.getService('v1', 'gmail', scopes, userId)
     try:
         label = service.users().labels().create(userId=userId, body={'name':nombre}).execute()
         logging.info('se ha creado la etiqueta: {}'.format(label))
         return label
     except errors.HttpError as err:
         logging.info('An error occurred: {}'.format(err))
+
+
+def obtenerServicio():
+    scopes = ['https://mail.google.com/',
+              'https://www.googleapis.com/auth/gmail.insert',
+              'https://www.googleapis.com/auth/gmail.modify',
+              'https://www.googleapis.com/auth/gmail.readonly',
+              'https://www.googleapis.com/auth/gmail.labels',
+              'https://www.googleapis.com/auth/gmail.metadata']
+
+    service = GAuthApis.getService('v1', 'gmail', scopes, userId)
+    return service
 
 def parsearEtiqueta(label, directorioBase):
     label = label[1:] if label[0] == '/' else label
@@ -121,15 +133,16 @@ if __name__ == '__main__':
     logging.basicConfig(filename=logFile, filemode='w', level=logging.INFO)
     print('logueando info del proceso sobre : {}'.format(logFile))
 
-    patron = re.compile('\..+')
+    service = obtenerServicio()
 
+    patron = re.compile('\..+')
 
     (base, dirs, files) = next(os.walk(maildir))
 
     omitir = ['.sent', '.enviados', '.borradores', '.draft','.trash', '.eliminados']
     omitir.extend(['sent', 'enviados', 'borradores', 'draft','trash', 'eliminados', 'tmp', 'cur', 'new'])
 
-    labelsGoogle = obtenerLabels(username)
+    labelsGoogle = obtenerLabels(service, username)
     logging.info('etiquestas de google {}'.format(labelsGoogle))
     etiquetasGoogle = [l["name"] for l in labelsGoogle]
     etiquetasNuevas = []
@@ -146,7 +159,7 @@ if __name__ == '__main__':
             l = l[1:] if l[0] == '/' else l
             logging.info("Directorio:" + d)
             if l not in etiquetasGoogle:
-                e = crearEtiqueta(username, l)
+                e = crearEtiqueta(service, username, l)
                 etiquetasNuevas.append({'id': e['id'], 'name': e['name']})
                 etiquetas[e['name']] = e['id']
             else:
@@ -196,4 +209,4 @@ if __name__ == '__main__':
             with open(archivo, 'r', encoding="latin-1") as file:
                 labelId = files["labelId"]
                 logging.info("Mail a copiar {} label: {}".format(archivo, labelId))
-                crearMensaje(api, version, username, file, [labelId], archivo)
+                crearMensaje(service, api, version, username, file, [labelId], archivo)
